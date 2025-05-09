@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ConnectWallet } from "./ConnectWallet";
+import { WalletConnect } from "./WalletConnect";
 import { SafeWalletDisplay } from "./SafeWalletDisplay";
-import { useAave } from "@/hooks/useAave";
 
 export function WalletContainer() {
   // Safe wallet addresses
@@ -12,25 +11,10 @@ export function WalletContainer() {
   ];
 
   const [selectedSafeIndex, setSelectedSafeIndex] = useState(0);
-  const { poolDataProvider, incentiveDataProvider } = useAave();
 
   const nextSafe = () => {
     setSelectedSafeIndex((prev) => (prev + 1) % safeAddresses.length);
   };
-
-  // Example: Fetch Aave reserves on mount (optional)
-  // const [aaveReserves, setAaveReserves] = useState([]);
-  // useEffect(() => {
-  //   async function fetchAaveData() {
-  //     if (poolDataProvider) {
-  //       const reserves = await poolDataProvider.getReservesHumanized({
-  //         lendingPoolAddressProvider: "0xc3301b30dadefcf1905d512ab4f2c3eab5a75ccf",
-  //       });
-  //       setAaveReserves(reserves.reservesData);
-  //     }
-  //   }
-  //   fetchAaveData();
-  // }, [poolDataProvider]);
 
   return (
     <div className="flex flex-col w-full gap-8">
@@ -38,7 +22,7 @@ export function WalletContainer() {
         <h2 className="text-lg font-medium text-center">
           Your Personal Wallet
         </h2>
-        <ConnectWallet />
+        <WalletConnect />
       </div>
 
       <div className="flex flex-col gap-2">
@@ -56,3 +40,4 @@ export function WalletContainer() {
       </div>
     </div>
   );
+}

@@ -5,6 +5,7 @@ import { useAccount, useWalletClient } from "wagmi";
 import { useAave } from "@/hooks/useAave";
 import { toast } from "react-hot-toast";
 import { Toaster } from "react-hot-toast";
+import { WalletClient } from "viem";
 
 interface DepositFormProps {
   onSuccess?: () => void;
@@ -20,18 +21,17 @@ export function DepositForm({ onSuccess, onError }: DepositFormProps) {
   const { deposit, isInitialized } = useAave();
 
   const handleDeposit = async () => {
-    if (!amount || !address || !walletClient || !isInitialized) return;
-
+    if (!amount || !address || !walletClient || !isInitialized) {
+      toast.error("Please connect your wallet and enter an amount");
+      return;
+    }
     try {
       setIsLoading(true);
-      const txs = await deposit(amount, selectedAsset, walletClient);
-
-      // Handle multiple transactions if needed
-      for (const tx of txs) {
-        const txResponse = await tx.tx();
-        console.log("Transaction sent:", txResponse);
-      }
-
+      await deposit(
+        amount,
+        selectedAsset,
+        walletClient as unknown as WalletClient
+      );
       toast.success(
         `Successfully deposited ${amount} ${selectedAsset} to Aave`
       );
@@ -44,7 +44,11 @@ export function DepositForm({ onSuccess, onError }: DepositFormProps) {
       setAmount("");
     } catch (error) {
       console.error("Deposit failed:", error);
-      toast.error("Failed to deposit. Please try again.");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to deposit. Please try again.";
+      toast.error(errorMessage);
 
       if (onError && error instanceof Error) {
         onError(error);
