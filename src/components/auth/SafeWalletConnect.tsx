@@ -15,7 +15,6 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { isAddress } from "ethers/lib/utils";
 import { useSafeStore } from "@/store/useSafeStore";
-import { ethers } from "ethers";
 
 export function SafeWalletConnect() {
   const { address: walletAddress } = useAccount();

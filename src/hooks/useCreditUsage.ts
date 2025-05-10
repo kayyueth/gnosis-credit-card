@@ -2,12 +2,21 @@ import { useState, useEffect } from "react";
 import { useSafeTransactions } from "@/hooks/useSafeTransactions";
 import { useSafeStore } from "@/store/useSafeStore";
 
+interface Transaction {
+  type: "incoming" | "outgoing";
+  tokenSymbol: string;
+  action?: string;
+  formattedValue: string;
+  timestamp: number;
+  to: string;
+}
+
 interface CreditUsageStats {
   totalSpent: number;
   totalDeposited: number;
   avgTransactionSize: number;
   transactionCount: number;
-  recentTransactions: any[];
+  recentTransactions: Transaction[];
   isLoading: boolean;
 }
 

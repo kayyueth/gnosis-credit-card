@@ -58,6 +58,37 @@ const txCache = new Map<
 >();
 const CACHE_EXPIRY = 300000; // Increase cache expiry to 5 minutes (was 30 seconds)
 
+// Define event types
+interface TransferEvent {
+  blockNumber: number;
+  transactionHash: string;
+  args: {
+    from: string;
+    to: string;
+    value: ethers.BigNumber;
+  };
+}
+
+interface ApprovalEvent {
+  blockNumber: number;
+  transactionHash: string;
+  args: {
+    owner: string;
+    spender: string;
+    value: ethers.BigNumber;
+  };
+}
+
+interface LendingEvent {
+  blockNumber: number;
+  transactionHash: string;
+  args: {
+    user: string;
+    asset: string;
+    amount: ethers.BigNumber;
+  };
+}
+
 export function useSafeTransactions({
   safeAddress = "",
   chainId = DEFAULT_CHAIN_ID,
@@ -98,12 +129,15 @@ export function useSafeTransactions({
   }, [chainId]);
 
   // Helper to process batches of events
-  const processEventsBatch = async (
-    events: any[],
-    processFn: Function,
-    ...args: any[]
+  const processEventsBatch = async <T>(
+    events: (TransferEvent | ApprovalEvent | LendingEvent)[],
+    processFn: (
+      event: TransferEvent | ApprovalEvent | LendingEvent,
+      ...args: unknown[]
+    ) => Promise<T>,
+    ...args: unknown[]
   ) => {
-    const results = [];
+    const results: T[] = [];
     for (const event of events) {
       try {
         const result = await processFn(event, ...args);
@@ -117,7 +151,7 @@ export function useSafeTransactions({
 
   // Process approval events
   const processApprovalEvent = async (
-    event: any,
+    event: ApprovalEvent,
     tokenAddress: string,
     symbol: string,
     decimals: number

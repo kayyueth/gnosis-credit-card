@@ -17,7 +17,6 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import { useGnosisCreditCard } from "@/hooks/useGnosisCreditCard";
 
 export function CreditScoreCard() {
@@ -28,7 +27,10 @@ export function CreditScoreCard() {
   );
   const [activeTab, setActiveTab] = useState<"score" | "breakdown">("score");
   const hasInitialized = useRef(false);
-  const prevUserCreditRef = useRef<any>(null);
+  const prevUserCreditRef = useRef<{
+    creditSnapshot: string;
+    creditSpent: string;
+  } | null>(null);
 
   // Add debug logging for activeTab
   useEffect(() => {
@@ -125,24 +127,16 @@ export function CreditScoreCard() {
           creditProfile.dimensions.social.score * 0.3
       );
 
-      // Create updated profile
-      const updatedProfile = {
-        ...creditProfile,
-        dimensions: updatedDimensions,
-        totalScore: newTotalScore,
-      };
-
-      // Save updated profile
-      try {
-        saveProfileToLocalStorage(updatedProfile);
-      } catch (error) {
-        console.error("Failed to save updated credit profile:", error);
+      // Only update state if the score has actually changed
+      if (newTotalScore !== creditProfile.totalScore) {
+        setCreditProfile({
+          ...creditProfile,
+          dimensions: updatedDimensions,
+          totalScore: newTotalScore,
+        });
       }
-
-      // Update state with new profile
-      setCreditProfile(updatedProfile);
     }
-  }, [address, creditProfile, userCredit]);
+  }, [userCredit, address, creditProfile]);
 
   if (!address || !creditProfile) {
     return (

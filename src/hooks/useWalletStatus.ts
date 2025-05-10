@@ -1,4 +1,4 @@
-import { useAccount, useConfig, useConnect } from "wagmi";
+import { useAccount, useConnect } from "wagmi";
 
 interface WalletStatusDebug {
   status: "connected" | "connecting" | "disconnected" | "reconnecting";
@@ -11,8 +11,6 @@ interface WalletStatusDebug {
 
 export function useWalletStatus(): WalletStatusDebug {
   const { status, isConnected, address, chainId, connector } = useAccount();
-
-  const config = useConfig();
   const { error: connectError } = useConnect();
 
   const debug: WalletStatusDebug = {

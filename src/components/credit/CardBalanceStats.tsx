@@ -88,7 +88,7 @@ export function CardBalanceStats({
       // Calculate deposit amount
       let deposited = 0;
       let depositTxCount = 0;
-      let spendingTxCount = creditSpent > 0 ? 1 : 0;
+      const spendingTxCount = creditSpent > 0 ? 1 : 0;
 
       // Add known deposit amount from lending state (use memoized value)
       if (depositedAmount > 0) {
@@ -134,7 +134,7 @@ export function CardBalanceStats({
           : stats.totalDeposited - stats.totalSpent
       ),
     };
-  }, [stats, currency, creditSnapshot, creditSpent]);
+  }, [stats, currency, creditSnapshot, creditSpent, getConvertedValue]);
 
   // Handle refresh
   const handleRefresh = async () => {

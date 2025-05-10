@@ -1,5 +1,6 @@
 import { useState } from "react";
 import * as ethers from "ethers";
+import { providers } from "ethers";
 
 /**
  * Hook to handle Safe wallet deployment
@@ -15,18 +16,9 @@ export function useSafeDeployer() {
    * Deploy a Safe wallet with the given owner
    *
    * @param ownerAddress The address that will be the owner of the Safe
-   * @param provider The Web3Provider from Web3Auth
-   * @param options Additional options like threshold or additional owners
    * @returns The address of the deployed Safe
    */
-  const deploySafe = async (
-    ownerAddress: string,
-    provider: any,
-    options?: {
-      threshold?: number;
-      additionalOwners?: string[];
-    }
-  ): Promise<string> => {
+  const deploySafe = async (ownerAddress: string): Promise<string> => {
     setIsDeploying(true);
     setError(null);
 
@@ -58,9 +50,11 @@ export function useSafeDeployer() {
       console.log(`✅ Safe wallet deployed at ${safeAddress}`);
 
       return safeAddress;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error deploying Safe wallet:", err);
-      setError(err.message || "Failed to deploy Safe wallet");
+      setError(
+        err instanceof Error ? err.message : "Failed to deploy Safe wallet"
+      );
       throw err;
     } finally {
       setIsDeploying(false);

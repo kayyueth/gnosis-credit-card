@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  useAccount,
-  useReadContract,
-  useWriteContract,
-  useTransaction,
-} from "wagmi";
+import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import { parseEther, formatEther } from "viem";
 import { CHAIN_CONFIGS } from "@/config/chain";
 import { TransactionRecorder } from "@/store/useTransactionStore";
@@ -16,7 +11,6 @@ const DEFAULT_CHAIN_ID = 10200;
 const {
   wstETHAddress: WSTETH_ADDRESS,
   lendingPoolAddress: LENDING_POOL_ADDRESS,
-  safeAddress: SAFE_ADDRESS,
   stablecoinAddresses,
 } = CHAIN_CONFIGS[DEFAULT_CHAIN_ID];
 
@@ -187,7 +181,7 @@ export function useLending() {
     if (!mint || !address) return;
     try {
       // Record the UI transaction before it happens
-      const txId = TransactionRecorder.recordTransaction({
+      TransactionRecorder.recordTransaction({
         action: "Mint",
         from: address,
         to: WSTETH_ADDRESS,
@@ -200,21 +194,30 @@ export function useLending() {
         isConfirmed: false,
       });
 
-      // Execute the transaction
-      const result = await mint({
+      // Execute the mint transaction
+      await mint({
         address: WSTETH_ADDRESS as `0x${string}`,
-        abi: ["function mint(uint256)"],
+        abi: ["function mint(address to, uint256 amount) public"],
         functionName: "mint",
-        args: [parseEther(amount)],
+        args: [address, parseEther(amount)],
       });
 
-      // Update the transaction with hash (if available in result)
-      TransactionRecorder.updateTransaction(txId, {
+      // Update the transaction status
+      TransactionRecorder.updateTransaction({
+        action: "Mint",
+        from: address,
+        to: WSTETH_ADDRESS,
+        value: amount,
+        formattedValue: amount,
+        tokenSymbol: "wstETH",
+        title: "Mint wstETH",
+        description: `Minting ${amount} wstETH for testing`,
         isPending: false,
         isConfirmed: true,
       });
     } catch (error) {
-      console.error("Mint error:", error);
+      console.error("Mint failed:", error);
+      throw error;
     }
   };
 
@@ -222,34 +225,45 @@ export function useLending() {
     if (!approve || !address) return;
     try {
       // Record the UI transaction before it happens
-      const txId = TransactionRecorder.recordTransaction({
+      TransactionRecorder.recordTransaction({
         action: "Approve",
         from: address,
         to: LENDING_POOL_ADDRESS,
         value: amount,
         formattedValue: amount,
         tokenSymbol: "wstETH",
-        title: "Approve Lending Pool",
-        description: `Approving ${amount} wstETH for deposit`,
+        title: "Approve wstETH",
+        description: `Approving ${amount} wstETH for lending pool`,
         isPending: true,
         isConfirmed: false,
       });
 
-      // Execute the transaction
-      const result = await approve({
+      // Execute the approve transaction
+      await approve({
         address: WSTETH_ADDRESS as `0x${string}`,
-        abi: ["function approve(address,uint256)"],
+        abi: [
+          "function approve(address spender, uint256 amount) external returns (bool)",
+        ],
         functionName: "approve",
         args: [LENDING_POOL_ADDRESS, parseEther(amount)],
       });
 
-      // Update the transaction with hash (if available in result)
-      TransactionRecorder.updateTransaction(txId, {
+      // Update the transaction status
+      TransactionRecorder.updateTransaction({
+        action: "Approve",
+        from: address,
+        to: LENDING_POOL_ADDRESS,
+        value: amount,
+        formattedValue: amount,
+        tokenSymbol: "wstETH",
+        title: "Approve wstETH",
+        description: `Approving ${amount} wstETH for lending pool`,
         isPending: false,
         isConfirmed: true,
       });
     } catch (error) {
-      console.error("Approve error:", error);
+      console.error("Approve failed:", error);
+      throw error;
     }
   };
 
@@ -257,108 +271,87 @@ export function useLending() {
     if (!deposit || !address) return;
     try {
       // Record the UI transaction before it happens
-      const txId = TransactionRecorder.recordTransaction({
+      TransactionRecorder.recordTransaction({
         action: "Deposit",
         from: address,
         to: LENDING_POOL_ADDRESS,
         value: amount,
         formattedValue: amount,
         tokenSymbol: "wstETH",
-        title: "Deposit Collateral",
+        title: "Deposit wstETH",
         description: `Depositing ${amount} wstETH as collateral`,
         isPending: true,
         isConfirmed: false,
       });
 
-      // Execute the transaction
-      const result = await deposit({
+      // Execute the deposit transaction
+      await deposit({
         address: LENDING_POOL_ADDRESS as `0x${string}`,
-        abi: ["function deposit(address,uint256,address,uint16)"],
+        abi: ["function deposit(address asset, uint256 amount) external"],
         functionName: "deposit",
-        args: [WSTETH_ADDRESS, parseEther(amount), address, 0],
+        args: [WSTETH_ADDRESS, parseEther(amount)],
       });
 
-      // Update the transaction with hash (if available in result)
-      TransactionRecorder.updateTransaction(txId, {
+      // Update the transaction status
+      TransactionRecorder.updateTransaction({
+        action: "Deposit",
+        from: address,
+        to: LENDING_POOL_ADDRESS,
+        value: amount,
+        formattedValue: amount,
+        tokenSymbol: "wstETH",
+        title: "Deposit wstETH",
+        description: `Depositing ${amount} wstETH as collateral`,
         isPending: false,
         isConfirmed: true,
       });
     } catch (error) {
-      console.error("Deposit error:", error);
+      console.error("Deposit failed:", error);
+      throw error;
     }
   };
 
   const handleBorrow = async (amount: string, stablecoin: "EURe" | "USDC") => {
     if (!borrow || !address) return;
-
-    // Always record the transaction immediately so it appears in the list
-    const txId = recordBorrowTransaction(
-      address,
-      amount,
-      stablecoin,
-      LENDING_POOL_ADDRESS,
-      true // Mark as pending initially
-    );
-
     try {
-      const stablecoinAddress = (
-        stablecoin === "EURe" ? contractEureAddress : contractUsdcAddress
-      ) as `0x${string}`;
-      if (!stablecoinAddress) {
-        throw new Error("Stablecoin address not found");
-      }
+      // Record the UI transaction before it happens
+      TransactionRecorder.recordTransaction({
+        action: "Borrow",
+        from: LENDING_POOL_ADDRESS,
+        to: address,
+        value: amount,
+        formattedValue: amount,
+        tokenSymbol: stablecoin,
+        title: `Borrow ${stablecoin}`,
+        description: `Borrowing ${amount} ${stablecoin} against collateral`,
+        isPending: true,
+        isConfirmed: false,
+      });
 
-      // Execute the transaction
-      const result = await borrow({
+      // Execute the borrow transaction
+      await borrow({
         address: LENDING_POOL_ADDRESS as `0x${string}`,
-        abi: [
-          {
-            inputs: [
-              { internalType: "address", name: "stablecoin", type: "address" },
-              { internalType: "uint256", name: "amount", type: "uint256" },
-            ],
-            name: "borrow",
-            outputs: [],
-            stateMutability: "nonpayable",
-            type: "function",
-          },
-        ],
+        abi: ["function borrow(address token, uint256 amount) external"],
         functionName: "borrow",
-        args: [stablecoinAddress, parseEther(amount)],
+        args: [stablecoinAddresses[stablecoin], parseEther(amount)],
       });
 
       // Update the transaction status
-      TransactionRecorder.updateTransaction(txId, {
+      TransactionRecorder.updateTransaction({
+        action: "Borrow",
+        from: LENDING_POOL_ADDRESS,
+        to: address,
+        value: amount,
+        formattedValue: amount,
+        tokenSymbol: stablecoin,
+        title: `Borrow ${stablecoin}`,
+        description: `Borrowing ${amount} ${stablecoin} against collateral`,
         isPending: false,
         isConfirmed: true,
       });
-
-      // Manually update the state.borrowedAmount to ensure it reflects the new value
-      // This helps with immediate UI updates without waiting for contract read to refresh
-      setState((prevState) => ({
-        ...prevState,
-        borrowedAmount: (
-          Number(prevState.borrowedAmount) + Number(amount)
-        ).toString(),
-      }));
-
-      console.log("Borrow successful - recorded in transaction history", {
-        txId,
-        amount,
-        stablecoin,
-        newBorrowedAmount: (
-          Number(state.borrowedAmount) + Number(amount)
-        ).toString(),
-      });
     } catch (error) {
-      console.error("Borrow error:", error);
-
-      // Even on error, don't remove the transaction but mark it as not pending
-      TransactionRecorder.updateTransaction(txId, {
-        isPending: false,
-        isConfirmed: true, // We still mark as confirmed since the UI transaction happened
-        description: `Failed to borrow ${amount} ${stablecoin}`,
-      });
+      console.error("Borrow failed:", error);
+      throw error;
     }
   };
 

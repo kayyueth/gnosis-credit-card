@@ -2,10 +2,18 @@ import { useEffect, useState } from "react";
 import { providers, Contract, utils } from "ethers";
 import { WalletClient } from "viem";
 import { BigNumber } from "ethers";
-import { CHAIN_CONFIGS, ChainConfig } from "@/config/chain";
+import { CHAIN_CONFIGS } from "@/config/chain";
 
 interface UseAaveProps {
   chainId?: number;
+}
+
+interface ContractABI {
+  inputs?: { internalType: string; name: string; type: string }[];
+  outputs?: { internalType: string; name: string; type: string }[];
+  stateMutability?: string;
+  type: string;
+  name?: string;
 }
 
 export function useAave({ chainId = 10200 }: UseAaveProps = {}) {
@@ -42,13 +50,13 @@ export function useAave({ chainId = 10200 }: UseAaveProps = {}) {
   const getContractWithSigner = (
     walletClient: WalletClient,
     address: string,
-    abi: any[]
+    abi: ContractABI[]
   ) => {
     if (!provider) throw new Error("Provider not initialized");
 
     // Create Web3Provider from walletClient's transport
     const web3Provider = new providers.Web3Provider(
-      (walletClient as any).transport
+      walletClient.transport as unknown as providers.ExternalProvider
     );
     const signer = web3Provider.getSigner();
 

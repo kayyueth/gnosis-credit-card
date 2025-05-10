@@ -179,7 +179,7 @@ export function CDPStatusPanel({
         eure: currentEureDebt,
       };
     }
-  }, [usdcDebtAmount, eureDebtAmount, address]);
+  }, [usdcDebtAmount, eureDebtAmount, address, usdcDebt, eureDebt]);
 
   // Handle refresh
   const handleRefresh = async () => {

@@ -1,5 +1,7 @@
 import { utils } from "ethers";
 import { MerkleTree } from "merkletreejs";
+import { OffChainTransactionHistory } from "./offChainSpendingService";
+import { keccak256, encodePacked } from "viem";
 
 export interface MerkleProof {
   root: string;
@@ -7,12 +9,25 @@ export interface MerkleProof {
   leaf: string;
 }
 
+interface Transaction {
+  id: string;
+  amount: string;
+  merchant: string;
+  category: string;
+  description: string;
+  timestamp: number;
+  currency: string;
+  userAddress?: string;
+}
+
 // Custom hash function using ethers
 function hashFunction(data: Buffer): Buffer {
   return Buffer.from(utils.keccak256(data).slice(2), "hex");
 }
 
-export function generateMerkleTree(transactions: any[]): MerkleProof {
+export function generateMerkleTree(
+  transactions: OffChainTransactionHistory[]
+): MerkleProof {
   if (!transactions || transactions.length === 0) {
     console.warn("No transactions provided to generateMerkleTree");
     return { root: "", proof: [], leaf: "" };

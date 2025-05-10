@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useAccount } from "wagmi";
 import { useOffChainSpending } from "@/hooks/useOffChainSpending";
 import { useGnosisCreditCard } from "@/hooks/useGnosisCreditCard";
@@ -48,7 +48,7 @@ export function OffChainTransactions({ className }: OffChainTransactionsProps) {
     reminderMessage,
     refetch: refetchOffChainSpending,
   } = useOffChainSpending();
-  const { userCredit, refetch: refetchCredit } = useGnosisCreditCard();
+  const { refetch: refetchCredit } = useGnosisCreditCard();
   const [clearInProgress, setClearInProgress] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 

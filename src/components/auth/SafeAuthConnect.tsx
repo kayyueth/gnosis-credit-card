@@ -9,6 +9,9 @@ import { Loader2, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import * as ethersLib from "ethers";
 import { useSafeStore } from "@/store/useSafeStore";
+import type { IProvider } from "@web3auth/base";
+
+type Provider = IProvider | ethersLib.providers.Web3Provider;
 
 // CSS for the custom animation
 const fadeInDownAnimation = `
@@ -35,12 +38,11 @@ const fadeInDownAnimation = `
 
 export default function SafeAuthConnect() {
   const [web3auth, setWeb3auth] = useState<Web3Auth | null>(null);
-  const [provider, setProvider] = useState<any>(null);
+  const [provider, setProvider] = useState<Provider | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [eoaAddress, setEoaAddress] = useState<string | null>(null);
   const [safeAddress, setSafeAddress] = useState<string | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeSafe, setActiveSafe] = useState<any>(null);
   const [isWalletActivated, setIsWalletActivated] = useState(false);
   const {
     setSafeAddress: setGlobalSafeAddress,
@@ -264,18 +266,7 @@ export default function SafeAuthConnect() {
     } finally {
       setIsConnecting(false);
     }
-  }, [
-    eoaAddress,
-    safeAddress,
-    getSafeForMetamask,
-    mapMetamaskToSafe,
-    setGlobalSafeAddress,
-    setSafeAddress,
-    setEoaAddress,
-    setProvider,
-    setIsWalletActivated,
-    setIsConnecting,
-  ]);
+  }, [getSafeForMetamask, mapMetamaskToSafe, setGlobalSafeAddress]);
 
   // Use different connection method based on fallback setting
   useEffect(() => {
@@ -532,7 +523,6 @@ export default function SafeAuthConnect() {
     setProvider(null);
     setEoaAddress(null);
     setSafeAddress(null);
-    setActiveSafe(null);
     setIsWalletActivated(false);
     setGlobalSafeAddress("");
   };
@@ -549,7 +539,6 @@ export default function SafeAuthConnect() {
 
     // Reset Safe-related state
     setSafeAddress(null);
-    setActiveSafe(null);
     setIsWalletActivated(false);
     setGlobalSafeAddress("");
 

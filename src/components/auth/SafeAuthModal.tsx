@@ -56,26 +56,40 @@ export function SafeAuthModal({
       await onConnect(provider);
       console.log(`Modal: Successfully connected with ${provider}`);
       setOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error connecting with ${provider}:`, error);
       // Handle empty error objects that might indicate connection issues
-      if (error && Object.keys(error).length === 0) {
+      if (
+        error &&
+        typeof error === "object" &&
+        Object.keys(error).length === 0
+      ) {
         setConnectError(
           "Connection to authentication service failed. Please try simplified mode."
         );
         // Automatically enable fallback mode after connection failure
         setUseFallbackAuth(true);
-      } else if (error?.message?.includes("RPC Error")) {
+      } else if (
+        error &&
+        typeof error === "object" &&
+        "message" in error &&
+        typeof error.message === "string" &&
+        error.message.includes("RPC Error")
+      ) {
         setConnectError(
           "Network connection issue with authentication service. Please try simplified mode."
         );
         // Automatically enable fallback mode after connection failure
         setUseFallbackAuth(true);
       } else {
-        setConnectError(
-          error.message ||
-            `Failed to connect with ${provider}. Please try again.`
-        );
+        const errorMessage =
+          error &&
+          typeof error === "object" &&
+          "message" in error &&
+          typeof error.message === "string"
+            ? error.message
+            : `Failed to connect with ${provider}. Please try again.`;
+        setConnectError(errorMessage);
       }
     } finally {
       setConnectingProvider(null);

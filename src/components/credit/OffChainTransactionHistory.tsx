@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useAccount } from "wagmi";
 import {
   Clock,
@@ -68,15 +68,15 @@ export function OffChainTransactionHistory({
   const [filter, setFilter] = useState<string>("all");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Function to load transaction history
-  const loadTransactionHistory = () => {
+  // Memoize the loadTransactionHistory function
+  const loadTransactionHistory = useCallback(() => {
     if (!address) return;
     const history = getTransactionHistory(address);
     setTransactions(history);
-  };
+  }, [address]);
 
   // Handle refresh
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     try {
       loadTransactionHistory();
@@ -87,7 +87,7 @@ export function OffChainTransactionHistory({
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [loadTransactionHistory]);
 
   // Load transaction history when user connects
   useEffect(() => {
@@ -100,16 +100,18 @@ export function OffChainTransactionHistory({
     const intervalId = setInterval(loadTransactionHistory, 30000); // Check every 30 seconds
 
     return () => clearInterval(intervalId);
-  }, [address]);
+  }, [address, loadTransactionHistory]);
 
   // Filter transactions by type
-  const filteredTransactions = transactions.filter((tx) => {
-    if (filter === "all") return true;
-    return tx.type === filter;
-  });
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter((tx) => {
+      if (filter === "all") return true;
+      return tx.type === filter;
+    });
+  }, [transactions, filter]);
 
   // Format date
-  const formatDate = (timestamp: number) => {
+  const formatDate = useCallback((timestamp: number) => {
     return new Date(timestamp).toLocaleString("en-US", {
       month: "short",
       day: "numeric",
@@ -117,10 +119,10 @@ export function OffChainTransactionHistory({
       hour: "numeric",
       minute: "2-digit",
     });
-  };
+  }, []);
 
   // Get type badge
-  const getTypeBadge = (type: string, currency: string) => {
+  const getTypeBadge = useCallback((type: string, currency: string) => {
     if (currency === "GNO") {
       return (
         <Badge
@@ -153,10 +155,10 @@ export function OffChainTransactionHistory({
         </Badge>
       );
     }
-  };
+  }, []);
 
   // Format transaction hash as a link
-  const formatTxHash = (hash?: string) => {
+  const formatTxHash = useCallback((hash?: string) => {
     if (!hash) return null;
 
     return (
@@ -170,7 +172,7 @@ export function OffChainTransactionHistory({
         View on Explorer
       </a>
     );
-  };
+  }, []);
 
   return (
     <Card className={className}>

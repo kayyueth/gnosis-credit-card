@@ -24,7 +24,7 @@ export function DepositPortal() {
     "idle" | "loading" | "success" | "error"
   >("idle");
 
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { deposit, isInitialized, error } = useAave();
 

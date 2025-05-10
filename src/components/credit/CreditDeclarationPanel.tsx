@@ -147,9 +147,12 @@ export function CreditDeclarationPanel() {
         const receipt = await publicClient.getTransactionReceipt({ hash });
         console.log("Transaction receipt:", receipt);
         return receipt;
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Handle the "receipt not found" error gracefully
-        if (error.name === "TransactionReceiptNotFoundError") {
+        if (
+          error instanceof Error &&
+          error.name === "TransactionReceiptNotFoundError"
+        ) {
           console.log(
             "Transaction receipt not found yet, but transaction exists"
           );
@@ -182,7 +185,7 @@ export function CreditDeclarationPanel() {
         handleRefresh();
       }, 2000);
     }
-  }, [isSuccess, txHash]);
+  }, [isSuccess, txHash, handleRefresh]);
 
   // Log whenever directUserCredit or userCredit changes
   useEffect(() => {

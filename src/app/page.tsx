@@ -18,6 +18,7 @@ import {
   getCreditProfile,
   saveProfileToLocalStorage,
   generateRandomCreditProfile,
+  type CreditProfile,
 } from "@/data/mock-credit-scores";
 import { CreditDeclarationPanel } from "@/components/credit/CreditDeclarationPanel";
 import { useGnosisCreditCard } from "@/hooks/useGnosisCreditCard";
@@ -36,10 +37,10 @@ type CurrencyType = "USDC" | "EURe";
 
 export default function Home() {
   const { address } = useAccount();
-  const { userCredit } = useGnosisCreditCard();
   const { safeAddress } = useSafeStore();
   const [activeTab, setActiveTab] = useState<string>("card");
-  const [creditProfileData, setCreditProfileData] = useState<any>(null);
+  const [creditProfileData, setCreditProfileData] =
+    useState<CreditProfile | null>(null);
   const [creditLimit, setCreditLimit] = useState("5,000");
   const [currency, setCurrency] = useState<CurrencyType>("USDC");
 
@@ -158,26 +159,31 @@ export default function Home() {
                         "bg-gradient-to-tr from-violet-900 via-purple-800 to-indigo-700"
                       }
                       ${
-                        creditProfileData?.totalScore >= 90 &&
+                        creditProfileData?.totalScore &&
+                        creditProfileData.totalScore >= 90 &&
                         "bg-gradient-to-tr from-violet-900 via-purple-800 to-indigo-700"
                       }
                       ${
-                        creditProfileData?.totalScore >= 75 &&
-                        creditProfileData?.totalScore < 90 &&
+                        creditProfileData?.totalScore &&
+                        creditProfileData.totalScore >= 75 &&
+                        creditProfileData.totalScore < 90 &&
                         "bg-gradient-to-tr from-blue-900 via-blue-800 to-indigo-600"
                       }
                       ${
-                        creditProfileData?.totalScore >= 60 &&
-                        creditProfileData?.totalScore < 75 &&
+                        creditProfileData?.totalScore &&
+                        creditProfileData.totalScore >= 60 &&
+                        creditProfileData.totalScore < 75 &&
                         "bg-gradient-to-tr from-emerald-800 via-green-700 to-teal-600"
                       }
                       ${
-                        creditProfileData?.totalScore >= 40 &&
-                        creditProfileData?.totalScore < 60 &&
+                        creditProfileData?.totalScore &&
+                        creditProfileData.totalScore >= 40 &&
+                        creditProfileData.totalScore < 60 &&
                         "bg-gradient-to-tr from-amber-600 via-yellow-600 to-orange-500"
                       }
                       ${
-                        creditProfileData?.totalScore < 40 &&
+                        creditProfileData?.totalScore &&
+                        creditProfileData.totalScore < 40 &&
                         "bg-gradient-to-tr from-red-800 via-red-700 to-rose-600"
                       }
                     `}

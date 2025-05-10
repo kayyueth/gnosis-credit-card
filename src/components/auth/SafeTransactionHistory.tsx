@@ -9,7 +9,6 @@ import {
   RefreshCw,
   Loader2,
   Info,
-  ChevronDown,
   Wallet,
   ShieldCheck,
 } from "lucide-react";
@@ -27,6 +26,18 @@ import { useSafeStore } from "@/store/useSafeStore";
 
 interface SafeTransactionHistoryProps {
   className?: string;
+}
+
+interface Transaction {
+  id: string;
+  type: "incoming" | "outgoing";
+  action?: string;
+  formattedValue: string;
+  tokenSymbol: string;
+  source: "safe" | "wallet";
+  timestamp: number;
+  from: string;
+  to: string;
 }
 
 export function SafeTransactionHistory({
@@ -68,7 +79,7 @@ export function SafeTransactionHistory({
   const olderTransactions = filteredTransactions.slice(3);
 
   // Create a transaction item component to reduce duplication
-  const TransactionItem = ({ tx }: { tx: any }) => (
+  const TransactionItem = ({ tx }: { tx: Transaction }) => (
     <div
       key={tx.id}
       className="border border-gray-100 dark:border-gray-700 rounded-lg p-3 flex items-center"

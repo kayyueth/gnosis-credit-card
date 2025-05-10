@@ -203,59 +203,18 @@ export const clearOffChainTransactions = (
     const transactionsJSON = localStorage.getItem(STORAGE_KEY);
     if (!transactionsJSON) return false;
 
-    let transactions: OffChainTransaction[] = JSON.parse(transactionsJSON);
-    let clearedTransactions: OffChainTransaction[] = [];
-    let totalCleared = 0;
-    let currency: "USDC" | "EURe" = "USDC";
+    const transactions: OffChainTransaction[] = JSON.parse(transactionsJSON);
+    const clearedTransactions = transactions.map((tx) => {
+      if (
+        tx.userAddress.toLowerCase() === userAddress.toLowerCase() &&
+        (!txIds || txIds.includes(tx.id))
+      ) {
+        return { ...tx, isCleared: true };
+      }
+      return tx;
+    });
 
-    // If specific transaction IDs are provided, only clear those
-    if (txIds && txIds.length > 0) {
-      transactions = transactions.map((tx) => {
-        if (
-          tx.userAddress.toLowerCase() === userAddress.toLowerCase() &&
-          txIds.includes(tx.id) &&
-          !tx.isCleared
-        ) {
-          clearedTransactions.push(tx);
-          totalCleared += Number(tx.amount);
-          currency = tx.currency;
-          return { ...tx, isCleared: true };
-        }
-        return tx;
-      });
-    } else {
-      // Otherwise clear all transactions for this user
-      transactions = transactions.map((tx) => {
-        if (
-          tx.userAddress.toLowerCase() === userAddress.toLowerCase() &&
-          !tx.isCleared
-        ) {
-          clearedTransactions.push(tx);
-          totalCleared += Number(tx.amount);
-          currency = tx.currency;
-          return { ...tx, isCleared: true };
-        }
-        return tx;
-      });
-    }
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(transactions));
-
-    // Record clearance to transaction history if any transactions were cleared
-    if (clearedTransactions.length > 0) {
-      recordTransactionHistory(
-        userAddress,
-        "clearance",
-        totalCleared.toString(),
-        currency,
-        {
-          description: `Cleared ${
-            clearedTransactions.length
-          } off-chain transaction${clearedTransactions.length > 1 ? "s" : ""}`,
-        }
-      );
-    }
-
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(clearedTransactions));
     return true;
   } catch (error) {
     console.error("Error clearing off-chain transactions:", error);

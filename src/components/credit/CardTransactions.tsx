@@ -124,10 +124,23 @@ const getCategoryIcon = (category: string, action?: string) => {
   }
 };
 
-// Function to infer category from transaction details
-const inferCategory = (
-  tx: any
-): { merchant: string; category: string; description: string } => {
+// Update the inferCategory function to use proper types
+interface TransactionDetails {
+  to: string;
+  from: string;
+  type: "incoming" | "outgoing";
+  tokenSymbol: string;
+  action?: string;
+  description?: string;
+}
+
+interface CategoryInfo {
+  merchant: string;
+  category: string;
+  description: string;
+}
+
+const inferCategory = (tx: TransactionDetails): CategoryInfo => {
   // Check if it's a known merchant
   const lowerTo = tx.to.toLowerCase();
   const lowerFrom = tx.from.toLowerCase();
@@ -259,23 +272,13 @@ const TransactionSkeleton = () => (
   </div>
 );
 
-// Remove the mock transactions creation function
-// We'll keep the function declaration for type-safety but make it return an empty array
-const createMockTransactions = (safeAddress: string) => [];
-
 export function CardTransactions({ className }: CardTransactionsProps) {
   const { safeAddress } = useSafeStore();
-  const {
-    transactions,
-    isLoading,
-    error,
-    refreshTransactions,
-    safeAddress: hookSafeAddress,
-    walletAddress,
-  } = useSafeTransactions({
-    safeAddress,
-    skipInitialFetch: false, // Keep listeners enabled
-  });
+  const { transactions, isLoading, error, refreshTransactions, walletAddress } =
+    useSafeTransactions({
+      safeAddress,
+      skipInitialFetch: false, // Keep listeners enabled
+    });
 
   // Get UI transactions from our store
   const { transactions: uiTransactions } = useTransactionStore();
@@ -466,12 +469,6 @@ export function CardTransactions({ className }: CardTransactionsProps) {
 
       // Only generate cashbacks if we have spending transactions and a claim has happened
       if (lastClaim > 0 && spendingTransactions.length > 0) {
-        // Get total spent amount for calculation
-        const totalSpent = spendingTransactions.reduce(
-          (sum, tx) => sum + Number(tx.formattedValue),
-          0
-        );
-
         // Generate a cashback for each spending transaction
         spendingTransactions.forEach((tx, index) => {
           // Use the real transaction's merchant and category if available
@@ -619,7 +616,7 @@ export function CardTransactions({ className }: CardTransactionsProps) {
       let action = tx.action;
 
       // Description should reflect what actually happened in the UI
-      let description = tx.description;
+      let description = tx.description || "Transaction";
 
       // For mint actions, make sure they show as mint in both category and action
       if (tx.action === "Mint") {

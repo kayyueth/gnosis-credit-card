@@ -31,12 +31,11 @@ interface CreditCardLimitsProps {
 export function CreditCardLimits({
   currency: propCurrency,
   onCurrencyChange,
-  className,
 }: CreditCardLimitsProps = {}) {
   const { address } = useAccount();
   const { safeAddress } = useSafeStore();
   const { totalSpent, totalDeposited, isLoading } = useCreditUsage();
-  const { userCredit, availableCredit, refetch } = useGnosisCreditCard();
+  const { userCredit, refetch } = useGnosisCreditCard();
   const [creditLimit, setCreditLimit] = useState(0);
   const [usedPercentage, setUsedPercentage] = useState(0);
   const [tier, setTier] = useState("Basic");
@@ -246,7 +245,7 @@ export function CreditCardLimits({
                 {100 - usedPercentage}% Available
               </div>
             </div>
-          </div> 
+          </div>
 
           {/* Borrowing Rates */}
           <div className="pt-4 border-t border-gray-100 dark:border-gray-800">

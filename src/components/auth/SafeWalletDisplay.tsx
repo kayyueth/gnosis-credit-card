@@ -3,22 +3,18 @@
 import { useState } from "react";
 import { useBalance } from "wagmi";
 import { useMounted } from "@/hooks/useMounted";
-import { SafeTransactionHistory } from "@/components/SafeTransactionHistory";
+import { SafeTransactionHistory } from "@/components/auth/SafeTransactionHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ClipboardCopy, ExternalLink } from "lucide-react";
 import { useSafeStore } from "@/store/useSafeStore";
-import SafeAuthConnect from "@/components/SafeAuthConnect";
+import SafeAuthConnect from "@/components/auth/SafeAuthConnect";
 
 export function SafeWalletDisplay() {
   const mounted = useMounted();
   const [isCopied, setIsCopied] = useState(false);
   const [showTransactions, setShowTransactions] = useState(true);
   const { safeAddress } = useSafeStore();
-
-  const { data: balance } = useBalance({
-    address: safeAddress ? (safeAddress as `0x${string}`) : undefined,
-  });
 
   const formatAddress = (address: string) => {
     if (!address) return "Connect your Safe wallet";

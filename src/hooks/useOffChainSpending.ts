@@ -35,6 +35,16 @@ const ADMIN_RECORD_ABI = [
   },
 ] as const;
 
+interface Transaction {
+  amount: string;
+  merchant: string;
+  category: string;
+  description: string;
+  currency: "USDC" | "EURe";
+  timestamp: number;
+  isCleared: boolean;
+}
+
 interface OffChainSpendingHookReturn {
   recordOffChainSpending: (
     amount: string,
@@ -44,8 +54,8 @@ interface OffChainSpendingHookReturn {
     currency: "USDC" | "EURe"
   ) => Promise<boolean>;
   clearMonthlyBalance: () => Promise<boolean>;
-  allTransactions: any[];
-  outstandingTransactions: any[];
+  allTransactions: Transaction[];
+  outstandingTransactions: Transaction[];
   totalOutstanding: number;
   isLoading: boolean;
   checkForReminders: () => void;
@@ -62,10 +72,10 @@ export function useOffChainSpending(): OffChainSpendingHookReturn {
     recordOffChainSpending: contractRecordSpending,
   } = useGnosisCreditCard();
   const [isLoading, setIsLoading] = useState(false);
-  const [allTransactions, setAllTransactions] = useState<any[]>([]);
-  const [outstandingTransactions, setOutstandingTransactions] = useState<any[]>(
-    []
-  );
+  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [outstandingTransactions, setOutstandingTransactions] = useState<
+    Transaction[]
+  >([]);
   const [totalOutstanding, setTotalOutstanding] = useState(0);
   const [hasReminder, setHasReminder] = useState(false);
   const [reminderMessage, setReminderMessage] = useState("");

@@ -206,22 +206,34 @@ export function useGnosisCreditCard() {
 
   // Effect to show toast notifications and refresh data
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     if (isSpendSuccess) {
       toast.success("Transaction successful! You earned cashback rewards.");
-      // Refresh all data
-      refetchAvailableCredit();
-      refetchUserCredit();
-      refetchLastClaim();
-      refetchUsdcDebt();
+
+      // Batch all refetches together
+      Promise.all([
+        refetchAvailableCredit(),
+        refetchUserCredit(),
+        refetchLastClaim(),
+        refetchUsdcDebt(),
+      ]).catch((error) => {
+        console.error("Error refreshing data:", error);
+      });
+
       setIsSuccess(true);
 
       // Reset success state after 3 seconds
-      const timer = setTimeout(() => {
+      timeoutId = setTimeout(() => {
         setIsSuccess(false);
       }, 3000);
-
-      return () => clearTimeout(timer);
     }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [
     isSpendSuccess,
     refetchAvailableCredit,

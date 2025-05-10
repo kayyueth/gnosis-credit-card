@@ -8,12 +8,7 @@ import { CHAIN_CONFIGS } from "@/config/chain";
 import { toast } from "react-hot-toast";
 import { TransactionStatus } from "@/components/TransactionStatus";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  AlertCircle,
-  ArrowDownIcon,
-  CreditCardIcon,
-  DollarSignIcon,
-} from "lucide-react";
+import { AlertCircle, ArrowDownIcon, CreditCardIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -40,12 +35,11 @@ export function BorrowPortal() {
   const [selectedAsset, setSelectedAsset] = useState<"USDC" | "EURe">("EURe");
   const [statusMessage, setStatusMessage] = useState("");
 
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
   const { data: walletClient } = useWalletClient();
   const { borrow, isInitialized, error } = useAave({
     chainId: DEFAULT_CHAIN_ID,
   });
-  const { safeAddress } = useSafeStore();
   const { refetch } = useGnosisCreditCard();
 
   // Contract write function to declare credit

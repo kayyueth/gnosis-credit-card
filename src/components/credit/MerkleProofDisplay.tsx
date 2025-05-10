@@ -1,8 +1,11 @@
 import { generateMerkleTree } from "@/lib/merkleTree";
-import { getTransactionHistory } from "@/lib/offChainSpendingService";
+import {
+  getTransactionHistory,
+  OffChainTransactionHistory,
+} from "@/lib/offChainSpendingService";
 
 interface MerkleProofDisplayProps {
-  transaction: any;
+  transaction: OffChainTransactionHistory;
   userAddress: string;
 }
 
