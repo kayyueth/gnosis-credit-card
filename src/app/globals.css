@@ -24,3 +24,111 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Radar Chart styles */
+.radar-chart {
+  font-family: sans-serif;
+}
+
+.radar-chart .radar-area {
+  fill-opacity: 0.4;
+}
+
+.radar-chart .radar-area:hover {
+  fill-opacity: 0.7;
+}
+
+.radar-chart .gridCircle {
+  stroke-width: 1;
+}
+
+.radar-chart .radarStroke {
+  fill: none;
+  stroke-width: 3;
+}
+
+.radar-chart .radarCircle {
+  fill-opacity: 0.8;
+}
+
+/* Dark mode adjustments */
+.dark .radar-chart .gridCircle {
+  fill: #444;
+  stroke: #555;
+}
+
+.dark .radar-chart .legend {
+  fill: #fff;
+}
+
+.dark .radar-chart .line {
+  stroke: #777;
+}
+
+/* Credit Card styles */
+.perspective {
+  perspective: 1000px;
+}
+
+.credit-card {
+  transition: transform 0.6s ease-out;
+  transform-style: preserve-3d;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+}
+
+.credit-card:hover {
+  transform: rotateY(5deg) rotateX(5deg) translateZ(10px);
+}
+
+.rotate-3d {
+  transform: rotateY(-5deg) rotateX(5deg);
+}
+
+/* Light ripple effect */
+.credit-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    125deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.2) 10%,
+    rgba(255, 255, 255, 0) 30%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* Card chip simulation */
+.card-chip {
+  position: relative;
+  width: 40px;
+  height: 30px;
+  background: linear-gradient(135deg, #bdbdbd 0%, #f5f5f5 50%, #bdbdbd 100%);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.card-chip::before,
+.card-chip::after {
+  content: "";
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.card-chip::before {
+  top: 5px;
+  left: 0;
+  right: 0;
+  height: 7px;
+}
+
+.card-chip::after {
+  bottom: 5px;
+  left: 0;
+  right: 0;
+  height: 7px;
+}
