@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { WalletConnect } from "@/components/WalletConnect";
+import { WalletConnect } from "@/components/auth/WalletConnect";
 import { CreditScoreCard } from "@/components/credit/CreditScoreCard";
 import { CDPStatusPanel } from "@/components/lending/CDPStatusPanel";
 import { BorrowPortal } from "@/components/lending/BorrowPortal";
@@ -19,13 +19,13 @@ import {
   saveProfileToLocalStorage,
   generateRandomCreditProfile,
 } from "@/data/mock-credit-scores";
-import { CreditDeclarationPanel } from "@/components/CreditDeclarationPanel";
+import { CreditDeclarationPanel } from "@/components/credit/CreditDeclarationPanel";
 import { useGnosisCreditCard } from "@/hooks/useGnosisCreditCard";
 import { useSafeStore } from "@/store/useSafeStore";
-import SafeAuthConnect from "@/components/SafeAuthConnect";
+import SafeAuthConnect from "@/components/auth/SafeAuthConnect";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Info } from "lucide-react";
-import { WstETHMintPortal } from "@/components/WstETHMintPortal";
+import { WstETHMintPortal } from "@/components/lending/WstETHMintPortal";
 import { OffChainTransactions } from "@/components/credit/OffChainTransactions";
 import { OffChainPayment } from "@/components/credit/OffChainPayment";
 import { MonthlyReminderBanner } from "@/components/credit/MonthlyReminderBanner";

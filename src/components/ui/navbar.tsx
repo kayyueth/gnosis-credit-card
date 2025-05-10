@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { WalletContainer } from "@/components/WalletContainer";
+import { WalletContainer } from "@/components/auth/WalletContainer";
 import { Button } from "@/components/ui/button";
 import { Menu, CreditCard } from "lucide-react";
 import { useState } from "react";

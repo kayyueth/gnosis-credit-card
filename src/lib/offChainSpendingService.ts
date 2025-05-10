@@ -13,6 +13,14 @@ interface OffChainTransaction {
   isCleared: boolean;
 }
 
+interface TransactionHistoryOptions {
+  merchant?: string;
+  category?: string;
+  description?: string;
+  txHash?: string;
+  merkleRoot?: string;
+}
+
 // Use localStorage to store off-chain transactions
 const STORAGE_KEY = "gnosis_offchain_transactions";
 
@@ -39,12 +47,7 @@ export const recordTransactionHistory = (
   type: "spend" | "clearance",
   amount: string,
   currency: "USDC" | "EURe" | "GNO",
-  details?: {
-    merchant?: string;
-    category?: string;
-    description?: string;
-    txHash?: string;
-  }
+  details?: TransactionHistoryOptions
 ): void => {
   try {
     const transaction: OffChainTransactionHistory = {

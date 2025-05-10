@@ -4,6 +4,7 @@ import { parseEther, formatEther } from "viem";
 import toast from "react-hot-toast";
 import { CHAIN_CONFIGS } from "@/config/chain";
 import { recordTransactionHistory } from "@/lib/offChainSpendingService";
+import { MerkleProof } from "@/lib/merkleTree";
 
 // Default to Gnosis Chiado testnet
 const DEFAULT_CHAIN_ID = 10200;
@@ -20,7 +21,11 @@ const CREDIT_CARD_ABI = [
     type: "function",
   },
   {
-    inputs: [],
+    inputs: [
+      { internalType: "bytes32", name: "root", type: "bytes32" },
+      { internalType: "bytes32[]", name: "proof", type: "bytes32[]" },
+      { internalType: "bytes32", name: "leaf", type: "bytes32" },
+    ],
     name: "monthlyClearance",
     outputs: [],
     stateMutability: "nonpayable",
@@ -257,7 +262,7 @@ export function useGnosisCreditCard() {
   };
 
   // Handle monthly clearance of off-chain spending
-  const handleMonthlyClearance = () => {
+  const handleMonthlyClearance = (merkleProof: MerkleProof) => {
     if (!address) {
       toast.error("Please connect your wallet first");
       return false;
@@ -266,12 +271,17 @@ export function useGnosisCreditCard() {
     try {
       setIsLoading(true);
 
-      // Send the transaction to clear off-chain spending
+      // Convert Merkle proof values to the correct format for the contract
+      const root = `0x${merkleProof.root}` as `0x${string}`;
+      const proof = merkleProof.proof.map((p) => `0x${p}` as `0x${string}`);
+      const leaf = `0x${merkleProof.leaf}` as `0x${string}`;
+
+      // Send the transaction to clear off-chain spending with Merkle proof
       writeContract({
         address: gnosisCreditCardAddress as `0x${string}`,
         abi: CREDIT_CARD_ABI,
         functionName: "monthlyClearance",
-        args: [],
+        args: [root, proof, leaf],
       });
 
       toast.success("Monthly clearance transaction submitted");

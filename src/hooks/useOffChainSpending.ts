@@ -15,6 +15,7 @@ import {
 import { getCreditProfile } from "@/data/mock-credit-scores";
 import { parseEther } from "viem";
 import { CHAIN_CONFIGS } from "@/config/chain";
+import { generateMerkleTree } from "@/lib/merkleTree";
 
 // Default to Gnosis Chiado testnet
 const DEFAULT_CHAIN_ID = 10200;
@@ -170,9 +171,12 @@ export function useOffChainSpending(): OffChainSpendingHookReturn {
 
     setIsLoading(true);
     try {
+      // Generate Merkle tree for outstanding transactions
+      const merkleProof = generateMerkleTree(outstandingTransactions);
+
       // Call the contract's monthlyClearance function which will handle both
       // the payment and GNO rewards in one transaction
-      const contractSuccess = await handleMonthlyClearance();
+      const contractSuccess = await handleMonthlyClearance(merkleProof);
 
       if (contractSuccess) {
         // If successful, update local records
@@ -213,6 +217,7 @@ export function useOffChainSpending(): OffChainSpendingHookReturn {
               currency,
               {
                 description: `Monthly clearance`,
+                merkleRoot: merkleProof.root, // Store Merkle root in transaction history
               }
             );
           }
