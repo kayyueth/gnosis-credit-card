@@ -30,109 +30,9 @@ import { OffChainTransactions } from "@/components/credit/OffChainTransactions";
 import { OffChainPayment } from "@/components/credit/OffChainPayment";
 import { MonthlyReminderBanner } from "@/components/credit/MonthlyReminderBanner";
 import { OffChainTransactionHistory } from "@/components/credit/OffChainTransactionHistory";
-import Joyride, { CallBackProps, STATUS, Step } from "react-joyride";
 
 // Define currency type
 type CurrencyType = "USDC" | "EURe";
-
-const TOUR_STEPS: Step[] = [
-  {
-    target: "body",
-    content: (
-      <div className="p-4">
-        <h3 className="text-xl font-black mb-2">
-          Welcome to Gnosis Pay Credit Card!
-        </h3>
-        <p>Let's get you started with your decentralized credit journey.</p>
-      </div>
-    ),
-    placement: "center",
-    disableBeacon: true,
-  },
-  {
-    target: '[data-tour="auth-section"]',
-    content: (
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold">1. Sign in with SafeAuth</h3>
-        <p>
-          Connect your Google account and MetaMask to create your Safe Smart
-          Wallet instantly.
-        </p>
-        <p className="text-sm text-muted-foreground text-gray-400">
-          A tiny $0.01 activation fee confirms you're ready to go.
-        </p>
-      </div>
-    ),
-    placement: "bottom",
-  },
-  {
-    target: '[data-tour="credit-score"]',
-    content: (
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold">2. Get Your Credit Score</h3>
-        <p>
-          We analyze your on-chain activity, DAO participation, and social
-          footprint to generate your personalized credit limit.
-        </p>
-        <p className="text-sm text-muted-foreground text-gray-400">
-          The credit data for this hackathon demo is mocked. Future integration
-          of DID protocols and Gnosis Ecosystem data is planned.
-        </p>
-      </div>
-    ),
-    placement: "left",
-  },
-  {
-    target: '[data-tour="borrow-section"]',
-    content: (
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold">3. Deposit & Borrow</h3>
-        <p>Deposit wstETH as collateral and borrow stablecoins with 50% LTV.</p>
-        <p className="text-sm text-muted-foreground text-gray-400">
-          Monitor your Health Factor and borrow with confidence.
-        </p>
-      </div>
-    ),
-    placement: "right",
-  },
-  {
-    target: '[data-tour="spend-section"]',
-    content: (
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold">4. Spend Anywhere, Worry-Free</h3>
-        <p>
-          Pay merchants with a click. Gnosis Pay handles the transaction and
-          tracks your spending limits seamlessly.
-        </p>
-        <p className="text-sm text-muted-foreground text-gray-400">
-          All transactions are hashed in merkle trees and submitted to contract
-          storage for on-chain verification.
-        </p>
-      </div>
-    ),
-    placement: "top",
-  },
-  {
-    target: '[data-tour="repay-section"]',
-    content: (
-      <div className="space-y-2">
-        <h3 className="text-lg font-semibold">
-          5. One-Click Repayment & Rewards
-        </h3>
-        <p>Review your statement and hit "Repay Now" to clear your balance.</p>
-        <p className="text-sm text-muted-foreground text-gray-400">
-          Earn $GNO cashback for every successful cycle!
-        </p>
-      </div>
-    ),
-    placement: "bottom",
-  },
-];
-
-const stepTabMap: Record<number, string | undefined> = {
-  4: "transactions", // Step 4: Spend
-  5: "transactions", // Step 5: Repay
-};
 
 export default function Home() {
   const { address } = useAccount();
@@ -142,11 +42,9 @@ export default function Home() {
   const [creditProfileData, setCreditProfileData] = useState<any>(null);
   const [creditLimit, setCreditLimit] = useState("5,000");
   const [currency, setCurrency] = useState<CurrencyType>("USDC");
-  const [run, setRun] = useState(false);
 
   useEffect(() => {
     if (address) {
-      setRun(true);
       // First check for an existing credit profile
       const creditProfile = getCreditProfile(address);
       if (creditProfile) {
@@ -211,61 +109,8 @@ export default function Home() {
     setCurrency(newCurrency);
   };
 
-  const handleJoyrideCallback = (data: CallBackProps) => {
-    const { index, type, status } = data;
-    console.log("Joyride step", { index, type, tab: stepTabMap[index] });
-    if (type === "step:before") {
-      const tab = stepTabMap[index];
-      if (tab) {
-        setActiveTab(tab);
-        setTimeout(() => {
-          const step = TOUR_STEPS[index];
-          if (step?.target) {
-            const el = document.querySelector(step.target as string);
-            if (!el) {
-              console.warn(
-                "🚨 Joyride element not found for step",
-                index,
-                step.target
-              );
-            } else {
-              console.log("✅ Element found for step", index, step.target);
-            }
-          }
-        }, 500);
-      }
-    }
-    const finishedStatuses: string[] = [STATUS.FINISHED, STATUS.SKIPPED];
-    if (finishedStatuses.includes(status)) setRun(false);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-300 dark:from-gray-900 dark:to-gray-800">
-      <Joyride
-        steps={TOUR_STEPS}
-        run={run}
-        continuous
-        hideCloseButton
-        scrollToFirstStep
-        showProgress
-        showSkipButton
-        callback={handleJoyrideCallback}
-        styles={{
-          options: {
-            zIndex: 10000,
-            primaryColor: "#6366f1",
-          },
-          tooltipContainer: {
-            textAlign: "left",
-          },
-          buttonNext: {
-            backgroundColor: "#6366f1",
-          },
-          buttonBack: {
-            marginRight: 10,
-          },
-        }}
-      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Header with Wallet Connect */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
