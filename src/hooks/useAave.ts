@@ -86,10 +86,45 @@ export function useAave({ chainId = 10200 }: UseAaveProps = {}) {
         walletClient,
         chainConfig.wstETHAddress,
         [
-          "function approve(address spender, uint256 amount) external returns (bool)",
-          "function mint(address to, uint256 amount) public",
-          "function balanceOf(address account) external view returns (uint256)",
-          "function allowance(address owner, address spender) external view returns (uint256)",
+          {
+            type: "function",
+            name: "approve",
+            inputs: [
+              { name: "spender", type: "address", internalType: "address" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+            outputs: [{ name: "", type: "bool", internalType: "bool" }],
+            stateMutability: "nonpayable",
+          },
+          {
+            type: "function",
+            name: "mint",
+            inputs: [
+              { name: "to", type: "address", internalType: "address" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+            outputs: [],
+            stateMutability: "nonpayable",
+          },
+          {
+            type: "function",
+            name: "balanceOf",
+            inputs: [
+              { name: "account", type: "address", internalType: "address" },
+            ],
+            outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+            stateMutability: "view",
+          },
+          {
+            type: "function",
+            name: "allowance",
+            inputs: [
+              { name: "owner", type: "address", internalType: "address" },
+              { name: "spender", type: "address", internalType: "address" },
+            ],
+            outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+            stateMutability: "view",
+          },
         ]
       );
 
@@ -143,9 +178,35 @@ export function useAave({ chainId = 10200 }: UseAaveProps = {}) {
         walletClient,
         chainConfig.wstETHAddress,
         [
-          "function approve(address spender, uint256 amount) external returns (bool)",
-          "function balanceOf(address account) external view returns (uint256)",
-          "function allowance(address owner, address spender) external view returns (uint256)",
+          {
+            type: "function",
+            name: "approve",
+            inputs: [
+              { name: "spender", type: "address", internalType: "address" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+            outputs: [{ name: "", type: "bool", internalType: "bool" }],
+            stateMutability: "nonpayable",
+          },
+          {
+            type: "function",
+            name: "balanceOf",
+            inputs: [
+              { name: "account", type: "address", internalType: "address" },
+            ],
+            outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+            stateMutability: "view",
+          },
+          {
+            type: "function",
+            name: "allowance",
+            inputs: [
+              { name: "owner", type: "address", internalType: "address" },
+              { name: "spender", type: "address", internalType: "address" },
+            ],
+            outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+            stateMutability: "view",
+          },
         ]
       );
 
@@ -153,8 +214,25 @@ export function useAave({ chainId = 10200 }: UseAaveProps = {}) {
         walletClient,
         chainConfig.lendingPoolAddress,
         [
-          "function deposit(address asset, uint256 amount) external",
-          "function getUserCollateral(address user) external view returns (uint256)",
+          {
+            type: "function",
+            name: "deposit",
+            inputs: [
+              { name: "asset", type: "address", internalType: "address" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+            outputs: [],
+            stateMutability: "nonpayable",
+          },
+          {
+            type: "function",
+            name: "getUserCollateral",
+            inputs: [
+              { name: "user", type: "address", internalType: "address" },
+            ],
+            outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+            stateMutability: "view",
+          },
         ]
       );
 
@@ -250,9 +328,35 @@ export function useAave({ chainId = 10200 }: UseAaveProps = {}) {
         walletClient,
         chainConfig.lendingPoolAddress,
         [
-          "function borrow(address stablecoin, uint256 amount) external",
-          "function getUserCollateral(address user) external view returns (uint256)",
-          "function getUserBorrowed(address user, address token) external view returns (uint256)",
+          {
+            type: "function",
+            name: "borrow",
+            inputs: [
+              { name: "stablecoin", type: "address", internalType: "address" },
+              { name: "amount", type: "uint256", internalType: "uint256" },
+            ],
+            outputs: [],
+            stateMutability: "nonpayable",
+          },
+          {
+            type: "function",
+            name: "getUserCollateral",
+            inputs: [
+              { name: "user", type: "address", internalType: "address" },
+            ],
+            outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+            stateMutability: "view",
+          },
+          {
+            type: "function",
+            name: "getUserBorrowed",
+            inputs: [
+              { name: "user", type: "address", internalType: "address" },
+              { name: "token", type: "address", internalType: "address" },
+            ],
+            outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+            stateMutability: "view",
+          },
         ]
       );
 

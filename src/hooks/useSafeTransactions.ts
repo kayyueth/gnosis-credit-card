@@ -575,14 +575,7 @@ export function useSafeTransactions({
       console.error("Failed to fetch token events:", err);
       throw err;
     }
-  }, [
-    provider,
-    safeAddress,
-    walletAddress,
-    fetchTokenEventsForAddress,
-    processApprovalEvent,
-    processLendingEvent,
-  ]);
+  }, [provider, safeAddress, walletAddress, fetchTokenEventsForAddress]);
 
   // Fetch all transactions
   const fetchTransactions = useCallback(async () => {
@@ -662,7 +655,7 @@ export function useSafeTransactions({
     }
 
     fetchTransactions();
-  }, [provider, safeAddress, chainId, skipInitialFetch]);
+  }, [provider, safeAddress, chainId, skipInitialFetch, fetchTransactions]);
 
   // Set up event listeners for real-time updates
   useEffect(() => {
