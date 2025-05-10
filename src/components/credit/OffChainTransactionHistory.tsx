@@ -50,6 +50,7 @@ import {
 import { CHAIN_CONFIGS } from "@/config/chain";
 import toast from "react-hot-toast";
 import { generateMerkleTree } from "@/lib/merkleTree";
+import { MerkleProofDisplay } from "./MerkleProofDisplay";
 
 // Default to Gnosis Chiado testnet
 const DEFAULT_CHAIN_ID = 10200;
@@ -266,23 +267,10 @@ export function OffChainTransactionHistory({
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent className="max-w-[550px] p-6">
-                              <div className="space-y-2">
-                                <p className="font-bold">Merkle Tree Details</p>
-                                <div className="text-xs space-y-1">
-                                  <p>
-                                    <span className="font-medium">Root:</span>{" "}
-                                    {generateMerkleTree([tx]).root}
-                                  </p>
-                                  <p>
-                                    <span className="font-medium">Leaf:</span>{" "}
-                                    {generateMerkleTree([tx]).leaf}
-                                  </p>
-                                  <p>
-                                    <span className="font-medium">Proof:</span>{" "}
-                                    {generateMerkleTree([tx]).proof.join(", ")}
-                                  </p>
-                                </div>
-                              </div>
+                              <MerkleProofDisplay
+                                transaction={tx}
+                                userAddress={address || ""}
+                              />
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -310,26 +298,11 @@ export function OffChainTransactionHistory({
                                 View Merkle Hash
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent className="max-w-[300px]">
-                              <div className="space-y-2">
-                                <p className="font-medium">
-                                  Merkle Tree Details
-                                </p>
-                                <div className="text-xs space-y-1">
-                                  <p>
-                                    <span className="font-medium">Root:</span>{" "}
-                                    {generateMerkleTree([tx]).root}
-                                  </p>
-                                  <p>
-                                    <span className="font-medium">Leaf:</span>{" "}
-                                    {generateMerkleTree([tx]).leaf}
-                                  </p>
-                                  <p>
-                                    <span className="font-medium">Proof:</span>{" "}
-                                    {generateMerkleTree([tx]).proof.join(", ")}
-                                  </p>
-                                </div>
-                              </div>
+                            <TooltipContent className="max-w-[550px] p-6">
+                              <MerkleProofDisplay
+                                transaction={tx}
+                                userAddress={address || ""}
+                              />
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>

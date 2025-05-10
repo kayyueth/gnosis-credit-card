@@ -13,6 +13,11 @@ function hashFunction(data: Buffer): Buffer {
 }
 
 export function generateMerkleTree(transactions: any[]): MerkleProof {
+  if (!transactions || transactions.length === 0) {
+    console.warn("No transactions provided to generateMerkleTree");
+    return { root: "", proof: [], leaf: "" };
+  }
+
   // Sort transactions by timestamp to ensure consistent ordering
   const sortedTransactions = [...transactions].sort(
     (a, b) => a.timestamp - b.timestamp
@@ -29,11 +34,13 @@ export function generateMerkleTree(transactions: any[]): MerkleProof {
       description: tx.description,
       timestamp: tx.timestamp,
       currency: tx.currency,
-      userAddress: tx.userAddress.toLowerCase(), // Normalize address
+      userAddress: tx.userAddress?.toLowerCase() || "", // Normalize address
     });
 
-    // Hash the transaction string using ethers
-    return hashFunction(Buffer.from(txString));
+    console.log("Transaction string:", txString);
+    const leaf = hashFunction(Buffer.from(txString));
+    console.log("Generated leaf:", leaf.toString("hex"));
+    return leaf;
   });
 
   // Create Merkle tree
@@ -41,27 +48,39 @@ export function generateMerkleTree(transactions: any[]): MerkleProof {
 
   // Get root
   const root = tree.getRoot().toString("hex");
+  console.log("Merkle root:", root);
 
   // Generate proof for each leaf
   const proofs = leaves.map((leaf, index) => {
-    const proof = tree.getProof(leaf, index);
+    const proof = tree.getProof(leaf);
+    const proofHex = proof.map((p) => p.data.toString("hex"));
+    console.log(`Proof for leaf ${index}:`, proofHex);
     return {
       root,
-      proof: proof.map((p) => p.data.toString("hex")),
+      proof: proofHex,
       leaf: leaf.toString("hex"),
     };
   });
 
-  return {
+  const result = {
     root,
-    proof: proofs[0].proof, // Return proof for the first transaction
-    leaf: proofs[0].leaf, // Return leaf for the first transaction
+    proof: proofs[0].proof,
+    leaf: proofs[0].leaf,
   };
+  console.log("Final Merkle proof:", result);
+  return result;
 }
 
 export function verifyMerkleProof(proof: MerkleProof): boolean {
-  const tree = new MerkleTree([Buffer.from(proof.leaf, "hex")], hashFunction, {
-    sortPairs: true,
-  });
-  return tree.verify(proof.proof, Buffer.from(proof.leaf, "hex"), proof.root);
+  if (!proof.root || !proof.leaf || !proof.proof.length) {
+    console.warn("Invalid proof provided to verifyMerkleProof");
+    return false;
+  }
+
+  const leafBuffer = Buffer.from(proof.leaf, "hex");
+  const tree = new MerkleTree([leafBuffer], hashFunction, { sortPairs: true });
+  const proofBuffers = proof.proof.map((p) => Buffer.from(p, "hex"));
+  const isValid = tree.verify(proofBuffers, leafBuffer, proof.root);
+  console.log("Proof verification result:", isValid);
+  return isValid;
 }
