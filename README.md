@@ -24,11 +24,11 @@ With SafeAuth social login, Aave-backed borrowing, and off-chain settlement, use
 
 - Spend Off-Chain
 
-  - Users spend within their credit limit; each transaction is recorded and hashed off-chain.
+  - Users spend within their credit limit; each transaction is hashed off-chain using merkle tree.
 
 - Monthly Settlement
 
-  - Users repay manually or via auto-deduction from collateral; zk-proofs are optional for privacy.
+  - Users repay manually or via monthly auto-deduction from collateral.
 
 - Earn Rewards & Build Credit
   - After repayment, users receive token rewards and see their credit score adjust over time.
@@ -68,7 +68,6 @@ With SafeAuth social login, Aave-backed borrowing, and off-chain settlement, use
 ### 5. Settlement & Rewards
 
 - Monthly batch settlement of off-chain transactions
-- Optional ZK proof-based settlement for privacy
 - Automated cashback token distribution
 
 ## 🛠️ Technical Stack
@@ -208,6 +207,12 @@ A trust layer that scores users across 3 weighted dimensions (each 0–100):
 | D, Dormant   | 0-349        | $1,000       | 0.5%            | 1.8x                               |
 
 ## 📈 Future Developments
+
+### Phase 0: Make It Smooth
+
+- Implement lock(): Prevent users from withdrawing borrowed funds until their credit balance is fully repaid, ensuring proper settlement of obligations.
+- Implement liquidate(): Automatically trigger liquidation of collateral if the user's health factor drops below 1.2, protecting the protocol against bad debt.
+- Implement forceRepay(): If a user fails to repay by the end of the billing cycle, the protocol will automatically swap a portion of their collateral to settle the outstanding credit.
 
 ### Phase 1: Make It Work
 

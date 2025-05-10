@@ -74,6 +74,10 @@ const TOUR_STEPS: Step[] = [
           We analyze your on-chain activity, DAO participation, and social
           footprint to generate your personalized credit limit.
         </p>
+        <p className="text-sm text-muted-foreground text-gray-400">
+          The credit data for this hackathon demo is mocked. Future integration
+          of DID protocols and Gnosis Ecosystem data is planned.
+        </p>
       </div>
     ),
     placement: "left",
@@ -99,6 +103,10 @@ const TOUR_STEPS: Step[] = [
         <p>
           Pay merchants with a click. Gnosis Pay handles the transaction and
           tracks your spending limits seamlessly.
+        </p>
+        <p className="text-sm text-muted-foreground text-gray-400">
+          All transactions are hashed in merkle trees and submitted to contract
+          storage for on-chain verification.
         </p>
       </div>
     ),
