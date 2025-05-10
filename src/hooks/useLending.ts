@@ -167,7 +167,7 @@ export function useLending() {
     if (!mint || !address) return;
     try {
       // Record the UI transaction before it happens
-      TransactionRecorder.recordTransaction({
+      const txId = TransactionRecorder.recordTransaction({
         action: "Mint",
         from: address,
         to: WSTETH_ADDRESS,
@@ -189,15 +189,7 @@ export function useLending() {
       });
 
       // Update the transaction status
-      TransactionRecorder.updateTransaction({
-        action: "Mint",
-        from: address,
-        to: WSTETH_ADDRESS,
-        value: amount,
-        formattedValue: amount,
-        tokenSymbol: "wstETH",
-        title: "Mint wstETH",
-        description: `Minting ${amount} wstETH for testing`,
+      TransactionRecorder.updateTransaction(txId, {
         isPending: false,
         isConfirmed: true,
       });
@@ -211,7 +203,7 @@ export function useLending() {
     if (!approve || !address) return;
     try {
       // Record the UI transaction before it happens
-      TransactionRecorder.recordTransaction({
+      const txId = TransactionRecorder.recordTransaction({
         action: "Approve",
         from: address,
         to: LENDING_POOL_ADDRESS,
@@ -235,15 +227,7 @@ export function useLending() {
       });
 
       // Update the transaction status
-      TransactionRecorder.updateTransaction({
-        action: "Approve",
-        from: address,
-        to: LENDING_POOL_ADDRESS,
-        value: amount,
-        formattedValue: amount,
-        tokenSymbol: "wstETH",
-        title: "Approve wstETH",
-        description: `Approving ${amount} wstETH for lending pool`,
+      TransactionRecorder.updateTransaction(txId, {
         isPending: false,
         isConfirmed: true,
       });
@@ -257,7 +241,7 @@ export function useLending() {
     if (!deposit || !address) return;
     try {
       // Record the UI transaction before it happens
-      TransactionRecorder.recordTransaction({
+      const txId = TransactionRecorder.recordTransaction({
         action: "Deposit",
         from: address,
         to: LENDING_POOL_ADDRESS,
@@ -279,15 +263,7 @@ export function useLending() {
       });
 
       // Update the transaction status
-      TransactionRecorder.updateTransaction({
-        action: "Deposit",
-        from: address,
-        to: LENDING_POOL_ADDRESS,
-        value: amount,
-        formattedValue: amount,
-        tokenSymbol: "wstETH",
-        title: "Deposit wstETH",
-        description: `Depositing ${amount} wstETH as collateral`,
+      TransactionRecorder.updateTransaction(txId, {
         isPending: false,
         isConfirmed: true,
       });
@@ -301,7 +277,7 @@ export function useLending() {
     if (!borrow || !address) return;
     try {
       // Record the UI transaction before it happens
-      TransactionRecorder.recordTransaction({
+      const txId = TransactionRecorder.recordTransaction({
         action: "Borrow",
         from: LENDING_POOL_ADDRESS,
         to: address,
@@ -323,15 +299,7 @@ export function useLending() {
       });
 
       // Update the transaction status
-      TransactionRecorder.updateTransaction({
-        action: "Borrow",
-        from: LENDING_POOL_ADDRESS,
-        to: address,
-        value: amount,
-        formattedValue: amount,
-        tokenSymbol: stablecoin,
-        title: `Borrow ${stablecoin}`,
-        description: `Borrowing ${amount} ${stablecoin} against collateral`,
+      TransactionRecorder.updateTransaction(txId, {
         isPending: false,
         isConfirmed: true,
       });

@@ -542,7 +542,13 @@ export function useSafeTransactions({
         return [];
       }
     },
-    [provider, safeAddress, walletAddress]
+    [
+      provider,
+      safeAddress,
+      walletAddress,
+      processApprovalEvent,
+      processLendingEvent,
+    ]
   );
 
   // Fetch token events for both safe and wallet addresses
