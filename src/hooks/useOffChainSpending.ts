@@ -59,8 +59,6 @@ export function useOffChainSpending(): OffChainSpendingHookReturn {
       const all = getUserOffChainTransactions(address).map((tx) => ({
         ...tx,
         type: "spend" as const,
-        id: tx.id,
-        userAddress: tx.userAddress,
       }));
       setAllTransactions(all);
 
@@ -68,8 +66,6 @@ export function useOffChainSpending(): OffChainSpendingHookReturn {
       const outstanding = getOutstandingTransactions(address).map((tx) => ({
         ...tx,
         type: "spend" as const,
-        id: tx.id,
-        userAddress: tx.userAddress,
       }));
       setOutstandingTransactions(outstanding);
 
@@ -222,10 +218,16 @@ export function useOffChainSpending(): OffChainSpendingHookReturn {
           });
 
           // Refresh transactions
-          const all = getUserOffChainTransactions(address);
+          const all = getUserOffChainTransactions(address).map((tx) => ({
+            ...tx,
+            type: "spend" as const,
+          }));
           setAllTransactions(all);
 
-          const outstanding = getOutstandingTransactions(address);
+          const outstanding = getOutstandingTransactions(address).map((tx) => ({
+            ...tx,
+            type: "spend" as const,
+          }));
           setOutstandingTransactions(outstanding);
 
           setTotalOutstanding(0);

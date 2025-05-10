@@ -151,71 +151,81 @@ export function useSafeTransactions({
   };
 
   // Process approval events
-  const processApprovalEvent = async (
-    event: ApprovalEvent,
-    tokenAddress: string,
-    symbol: string,
-    decimals: number
-  ): Promise<Transaction> => {
-    const block = await provider!.getBlock(event.blockNumber);
-    const txHash = event.transactionHash;
+  const processApprovalEvent = useCallback(
+    async (
+      event: ApprovalEvent,
+      tokenAddress: string,
+      symbol: string,
+      decimals: number
+    ): Promise<Transaction> => {
+      const block = await provider!.getBlock(event.blockNumber);
+      const txHash = event.transactionHash;
 
-    const source: TransactionSource =
-      event.args.owner.toLowerCase() === safeAddress.toLowerCase()
-        ? "safe"
-        : "wallet";
+      const source: TransactionSource =
+        event.args.owner.toLowerCase() === safeAddress.toLowerCase()
+          ? "safe"
+          : "wallet";
 
-    return {
-      id: txHash,
-      timestamp: block.timestamp * 1000,
-      from: event.args.owner,
-      to: event.args.spender,
-      tokenAddress,
-      tokenSymbol: symbol,
-      value: event.args.value.toString(),
-      formattedValue: ethers.utils.formatUnits(event.args.value, decimals),
-      type: "outgoing",
-      action: "Approval",
-      source,
-    };
-  };
+      return {
+        id: txHash,
+        timestamp: block.timestamp * 1000,
+        from: event.args.owner,
+        to: event.args.spender,
+        tokenAddress,
+        tokenSymbol: symbol,
+        value: event.args.value.toString(),
+        formattedValue: ethers.utils.formatUnits(event.args.value, decimals),
+        type: "outgoing",
+        action: "Approval",
+        source,
+      };
+    },
+    [provider, safeAddress]
+  );
 
   // Process lending events (deposits and borrows)
-  const processLendingEvent = async (
-    event: LendingEvent,
-    action: "Deposit" | "Borrow"
-  ): Promise<Transaction> => {
-    const block = await provider!.getBlock(event.blockNumber);
-    const txHash = event.transactionHash;
-    const { user, asset, amount } = event.args;
+  const processLendingEvent = useCallback(
+    async (
+      event: LendingEvent,
+      action: "Deposit" | "Borrow"
+    ): Promise<Transaction> => {
+      const block = await provider!.getBlock(event.blockNumber);
+      const txHash = event.transactionHash;
+      const { user, asset, amount } = event.args;
 
-    // Get token details
-    const tokenContract = new ethers.Contract(asset, erc20Interface, provider!);
-    const [symbol, decimals] = await Promise.all([
-      tokenContract.symbol(),
-      tokenContract.decimals(),
-    ]);
+      // Get token details
+      const tokenContract = new ethers.Contract(
+        asset,
+        erc20Interface,
+        provider!
+      );
+      const [symbol, decimals] = await Promise.all([
+        tokenContract.symbol(),
+        tokenContract.decimals(),
+      ]);
 
-    const source: TransactionSource =
-      user.toLowerCase() === safeAddress.toLowerCase() ? "safe" : "wallet";
+      const source: TransactionSource =
+        user.toLowerCase() === safeAddress.toLowerCase() ? "safe" : "wallet";
 
-    const type: "incoming" | "outgoing" =
-      action === "Deposit" ? "outgoing" : "incoming";
+      const type: "incoming" | "outgoing" =
+        action === "Deposit" ? "outgoing" : "incoming";
 
-    return {
-      id: txHash,
-      timestamp: block.timestamp * 1000,
-      from: action === "Deposit" ? user : LENDING_POOL_ADDRESS,
-      to: action === "Deposit" ? LENDING_POOL_ADDRESS : user,
-      tokenAddress: asset,
-      tokenSymbol: symbol,
-      value: amount.toString(),
-      formattedValue: ethers.utils.formatUnits(amount, decimals),
-      type,
-      action,
-      source,
-    };
-  };
+      return {
+        id: txHash,
+        timestamp: block.timestamp * 1000,
+        from: action === "Deposit" ? user : LENDING_POOL_ADDRESS,
+        to: action === "Deposit" ? LENDING_POOL_ADDRESS : user,
+        tokenAddress: asset,
+        tokenSymbol: symbol,
+        value: amount.toString(),
+        formattedValue: ethers.utils.formatUnits(amount, decimals),
+        type,
+        action,
+        source,
+      };
+    },
+    [provider, safeAddress]
+  );
 
   // Fetch token events for a specified address (safe or wallet)
   const fetchTokenEventsForAddress = useCallback(
