@@ -25,6 +25,6 @@ export const CHAIN_CONFIGS: Record<number, ChainConfig> = {
       EURe: "0x137e7a3c32993cd0c15dfdf3020875322da145cd",
     },
     gnoPointsAddress: "0x70630625dCc6FDb9EFD00466A47E7d3883E6F5d5",
-    gnosisCreditCardAddress: "0xd443055C84Eb7ed7134586ED4605B17072A1025f",
+    gnosisCreditCardAddress: "0x08069fE12cE51755984ae0D466ECc897f4A7984D",
   },
 };
