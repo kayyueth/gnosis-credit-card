@@ -537,23 +537,52 @@ export default function SafeAuthConnect() {
     setGlobalSafeAddress("");
   };
 
-  const handleResetMappings = () => {
-    // This will clear all existing mappings for debugging purposes
-    resetMappings();
-    console.log("✅ Cleared all wallet-to-Safe mappings");
+  const handleResetMappings = async () => {
+    if (!eoaAddress) {
+      console.log("No EOA address found to reset");
+      return;
+    }
 
-    // Also reset any currently connected Safe
+    // Clear the Safe wallet mapping for this specific EOA
+    resetMappings();
+    console.log("✅ Cleared Safe wallet mapping for:", eoaAddress);
+
+    // Reset Safe-related state
     setSafeAddress(null);
+    setActiveSafe(null);
+    setIsWalletActivated(false);
     setGlobalSafeAddress("");
 
-    // If we're currently connected, reconnect to get a fresh Safe
-    if (provider) {
-      if (useFallbackAuth) {
-        connectWithFallback();
-      } else if (web3auth) {
-        handleSignIn();
-      }
-    }
+    // Generate a new Safe wallet for the same EOA
+    const uniqueSalt = ethersLib.utils.keccak256(
+      ethersLib.utils.toUtf8Bytes(
+        `gnosis-pay-credit-card-${eoaAddress.toLowerCase()}-${Date.now()}`
+      )
+    );
+
+    console.log("Generated new unique salt for address:", eoaAddress);
+    console.log("Salt:", uniqueSalt);
+
+    const addressHash = ethersLib.utils.keccak256(
+      ethersLib.utils.defaultAbiCoder.encode(
+        ["address", "bytes32"],
+        [eoaAddress, uniqueSalt]
+      )
+    );
+
+    // Generate new Safe address
+    const newSafeAddress = "0x" + addressHash.slice(26);
+    console.log("New Safe address generated:", newSafeAddress);
+
+    // Set the new Safe address
+    setSafeAddress(newSafeAddress);
+    setGlobalSafeAddress(newSafeAddress);
+
+    // Map the EOA to the new Safe address
+    mapMetamaskToSafe(eoaAddress, newSafeAddress);
+    console.log(
+      `Created new Safe wallet for address ${eoaAddress}: ${newSafeAddress}`
+    );
   };
 
   // Handle copying address to clipboard

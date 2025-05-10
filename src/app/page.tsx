@@ -142,10 +142,11 @@ export default function Home() {
   const [creditProfileData, setCreditProfileData] = useState<any>(null);
   const [creditLimit, setCreditLimit] = useState("5,000");
   const [currency, setCurrency] = useState<CurrencyType>("USDC");
-  const [run, setRun] = useState(true);
+  const [run, setRun] = useState(false);
 
   useEffect(() => {
     if (address) {
+      setRun(true);
       // First check for an existing credit profile
       const creditProfile = getCreditProfile(address);
       if (creditProfile) {
@@ -242,7 +243,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-300 dark:from-gray-900 dark:to-gray-800">
       <Joyride
         steps={TOUR_STEPS}
-        run={true}
+        run={run}
         continuous
         hideCloseButton
         scrollToFirstStep
