@@ -510,9 +510,12 @@ export default function SafeAuthConnect() {
       console.log("✅ Safe activated by xDAI transfer!");
 
       setIsWalletActivated(true);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error activating Safe:", err);
-      alert("Transaction failed: " + err.message);
+      alert(
+        "Transaction failed: " +
+          (err instanceof Error ? err.message : String(err))
+      );
     } finally {
       setIsActivating(false);
     }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   ArrowUp,
   ArrowDown,
@@ -8,12 +8,12 @@ import {
   Wallet,
   RefreshCw,
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/StatCard";
 import { useSafeTransactions } from "@/hooks/useSafeTransactions";
 import { useLending } from "@/hooks/useLending";
 import { useSafeStore } from "@/store/useSafeStore";
 import { useGnosisCreditCard } from "@/hooks/useGnosisCreditCard";
-import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 
 type CurrencyType = "USDC" | "EURe";
@@ -29,13 +29,13 @@ export function CardBalanceStats({
 }: CardBalanceStatsProps) {
   const { safeAddress } = useSafeStore();
   const { userCredit, refetch: refetchCredit } = useGnosisCreditCard();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [stats, setStats] = useState({
     totalSpent: 0,
     totalDeposited: 0,
     avgTransactionSize: 0,
     transactionCount: 0,
   });
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { transactions, refreshTransactions } = useSafeTransactions({
     safeAddress,
@@ -51,10 +51,13 @@ export function CardBalanceStats({
   };
 
   // Convert USD to EUR if needed
-  const getConvertedValue = (usdValue: number) => {
-    if (currency === "USDC") return usdValue;
-    return usdValue / eurToUsdRate;
-  };
+  const getConvertedValue = useCallback(
+    (usdValue: number) => {
+      if (currency === "USDC") return usdValue;
+      return usdValue / eurToUsdRate;
+    },
+    [currency, eurToUsdRate]
+  );
 
   // Extract stable values from userCredit to avoid recalculations
   const creditSpent = useMemo(() => {

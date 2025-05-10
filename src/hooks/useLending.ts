@@ -64,20 +64,6 @@ export function useLending() {
     args: [address],
   });
 
-  // Read contract's stored EURe address
-  const { data: contractEureAddress } = useReadContract({
-    address: LENDING_POOL_ADDRESS as `0x${string}`,
-    abi: ["function eure() view returns (address)"],
-    functionName: "eure",
-  });
-
-  // Read contract's stored USDC address
-  const { data: contractUsdcAddress } = useReadContract({
-    address: LENDING_POOL_ADDRESS as `0x${string}`,
-    abi: ["function usdc() view returns (address)"],
-    functionName: "usdc",
-  });
-
   // Read allowance
   const { data: allowance } = useReadContract({
     address: WSTETH_ADDRESS as `0x${string}`,

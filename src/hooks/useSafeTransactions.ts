@@ -575,7 +575,14 @@ export function useSafeTransactions({
       console.error("Failed to fetch token events:", err);
       throw err;
     }
-  }, [provider, safeAddress, walletAddress, fetchTokenEventsForAddress]);
+  }, [
+    provider,
+    safeAddress,
+    walletAddress,
+    fetchTokenEventsForAddress,
+    processApprovalEvent,
+    processLendingEvent,
+  ]);
 
   // Fetch all transactions
   const fetchTransactions = useCallback(async () => {
@@ -655,7 +662,7 @@ export function useSafeTransactions({
     }
 
     fetchTransactions();
-  }, [fetchTransactions, provider, safeAddress, chainId, skipInitialFetch]);
+  }, [provider, safeAddress, chainId, skipInitialFetch]);
 
   // Set up event listeners for real-time updates
   useEffect(() => {
@@ -770,7 +777,7 @@ export function useSafeTransactions({
         from: string,
         to: string,
         value: ethers.BigNumber,
-        event: any,
+        event: ethers.Event,
         tokenAddress: string,
         isIncoming: boolean,
         source: TransactionSource = "safe"

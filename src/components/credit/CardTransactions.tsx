@@ -53,31 +53,29 @@ const DEFAULT_CHAIN_ID = 10200;
 const { gnosisCreditCardAddress, gnoPointsAddress, lendingPoolAddress } =
   CHAIN_CONFIGS[DEFAULT_CHAIN_ID];
 
-// Update the merchant categories object to use the addresses from config
+// Remove unused MERCHANT_CATEGORIES constant since it's not being used
 // The merchant categories with mapped names
-const MERCHANT_CATEGORIES: Record<string, { name: string; category: string }> =
-  {
-    "0x2dc3fb1f38b0e88a98929f256b0967175eae9e56": {
-      name: "Gnosis Safe",
-      category: "Transfer",
-    },
-    "0xcd5d4a865e0c7442c5a2e3720a36f622883fcb91": {
-      name: "Gnosis Transport",
-      category: "Transportation",
-    },
-    "0xe0c7442c5a2e3720a36f622883fcb91cd5d4a865": {
-      name: "Gnosis Utilities",
-      category: "Utilities",
-    },
-    [lendingPoolAddress.toLowerCase()]: {
-      name: "Aave V3",
-      category: "DeFi",
-    },
-    [gnosisCreditCardAddress.toLowerCase()]: {
-      name: "Gnosis Pay",
-      category: "Rewards",
-    },
-  };
+const getMerchantCategory = (
+  address: string
+): { name: string; category: string } | undefined => {
+  const lowerAddress = address.toLowerCase();
+  if (lowerAddress === "0x2dc3fb1f38b0e88a98929f256b0967175eae9e56") {
+    return { name: "Gnosis Safe", category: "Transfer" };
+  }
+  if (lowerAddress === "0xcd5d4a865e0c7442c5a2e3720a36f622883fcb91") {
+    return { name: "Gnosis Transport", category: "Transportation" };
+  }
+  if (lowerAddress === "0xe0c7442c5a2e3720a36f622883fcb91cd5d4a865") {
+    return { name: "Gnosis Utilities", category: "Utilities" };
+  }
+  if (lowerAddress === lendingPoolAddress.toLowerCase()) {
+    return { name: "Aave V3", category: "DeFi" };
+  }
+  if (lowerAddress === gnosisCreditCardAddress.toLowerCase()) {
+    return { name: "Gnosis Pay", category: "Rewards" };
+  }
+  return undefined;
+};
 
 // Function to get category icon
 const getCategoryIcon = (category: string, action?: string) => {
@@ -273,9 +271,11 @@ const TransactionSkeleton = () => (
   </div>
 );
 
-// For rewards, extend Transaction if needed
+// Update the RewardTransaction interface to extend Transaction with required fields
 interface RewardTransaction extends Transaction {
-  // Add any extra fields for rewards if needed
+  rewardAmount: number;
+  rewardType: "cashback" | "points";
+  originalTransactionId: string;
 }
 
 export function CardTransactions({ className }: CardTransactionsProps) {
@@ -467,34 +467,28 @@ export function CardTransactions({ className }: CardTransactionsProps) {
           id: `reward-${tx.id}-${index}`,
           from: tx.from,
           to: tx.to,
-          type: tx.type,
-          value: tx.value,
-          formattedValue: tx.formattedValue,
-          tokenSymbol: tx.tokenSymbol,
-          tokenAddress: tx.tokenAddress,
-          timestamp: tx.timestamp + 86400000, // 24 hours after original tx
+          type: "incoming",
+          value: (Number(tx.value) * 0.02).toString(), // 2% cashback
+          formattedValue: (Number(tx.formattedValue) * 0.02).toFixed(2),
+          tokenSymbol: "GNO",
+          tokenAddress: gnoPointsAddress,
+          timestamp: tx.timestamp + 300000, // 5 minutes after the original transaction
           action: "Reward",
-          source: tx.source,
+          source: "wallet",
+          rewardAmount: Number(tx.value) * 0.02,
+          rewardType: "cashback",
+          originalTransactionId: tx.id,
         })
       );
 
-      // Compare stringified arrays to avoid unnecessary updates
-      const currentRewardsString = JSON.stringify(generatedRewards);
-      const existingRewardsString = JSON.stringify(rewardsTransactions);
-
-      if (currentRewardsString !== existingRewardsString) {
-        setRewardsTransactions(generatedRewards);
-      }
+      setRewardsTransactions(generatedRewards);
     }
   }, [
+    userCredit,
     safeAddress,
-    lastClaim,
-    // Track length changes for transactions
-    transactions.length,
-    localTransactions.length,
-    // Track credit values as primitives
-    userCredit?.creditSpent,
-    userCredit?.creditSnapshot,
+    transactions,
+    localTransactions,
+    gnoPointsAddress,
   ]);
 
   // Generate lending transactions

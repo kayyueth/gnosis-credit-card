@@ -14,11 +14,7 @@ import {
   type OffChainTransactionHistory,
 } from "@/lib/offChainSpendingService";
 import { getCreditProfile } from "@/data/mock-credit-scores";
-import { CHAIN_CONFIGS } from "@/config/chain";
 import { generateMerkleTree } from "@/lib/merkleTree";
-
-// Default to Gnosis Chiado testnet
-const DEFAULT_CHAIN_ID = 10200;
 
 interface OffChainSpendingHookReturn {
   recordOffChainSpending: (

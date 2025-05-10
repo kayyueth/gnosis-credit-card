@@ -1,5 +1,3 @@
-import { ethers } from "ethers";
-
 interface OffChainTransaction {
   id: string;
   userAddress: string;

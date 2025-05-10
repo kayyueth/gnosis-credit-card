@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
@@ -27,7 +27,6 @@ export function CreditDeclarationPanel() {
   const [isDeclaringCredit, setIsDeclaringCredit] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [transactionPending, setTransactionPending] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
   const processedTxHash = useRef<string | null>(null);
 
   // Contract write function to declare credit
@@ -71,7 +70,6 @@ export function CreditDeclarationPanel() {
     try {
       setIsDeclaringCredit(true);
       setTransactionPending(false);
-      setRetryCount(0);
       processedTxHash.current = null;
 
       // Fetch and log current borrowing data for debugging
@@ -109,7 +107,7 @@ export function CreditDeclarationPanel() {
   };
 
   // Manual refresh function to update credit information
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     try {
       setIsRefreshing(true);
       console.log("Manual refresh triggered");
@@ -135,39 +133,7 @@ export function CreditDeclarationPanel() {
     } finally {
       setIsRefreshing(false);
     }
-  };
-
-  // Function to check transaction receipt directly
-  const checkTransactionReceipt = async (hash: `0x${string}`) => {
-    if (!hash || !publicClient) return null;
-
-    try {
-      console.log("Checking transaction receipt for:", hash);
-      try {
-        const receipt = await publicClient.getTransactionReceipt({ hash });
-        console.log("Transaction receipt:", receipt);
-        return receipt;
-      } catch (error: unknown) {
-        // Handle the "receipt not found" error gracefully
-        if (
-          error instanceof Error &&
-          error.name === "TransactionReceiptNotFoundError"
-        ) {
-          console.log(
-            "Transaction receipt not found yet, but transaction exists"
-          );
-          // Check if the transaction exists at least
-          const tx = await publicClient.getTransaction({ hash });
-          console.log("Transaction exists:", !!tx);
-          return { status: "pending", exists: !!tx };
-        }
-        throw error; // Re-throw other errors
-      }
-    } catch (error) {
-      console.error("Error getting transaction receipt:", error);
-      return null;
-    }
-  };
+  }, [isSuccess, refetch, directRefetch]);
 
   // Effect to handle transaction success
   useEffect(() => {

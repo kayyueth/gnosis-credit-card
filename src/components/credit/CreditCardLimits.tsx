@@ -33,8 +33,6 @@ export function CreditCardLimits({
   onCurrencyChange,
 }: CreditCardLimitsProps = {}) {
   const { address } = useAccount();
-  const { safeAddress } = useSafeStore();
-  const { totalSpent, totalDeposited, isLoading } = useCreditUsage();
   const { userCredit, refetch } = useGnosisCreditCard();
   const [creditLimit, setCreditLimit] = useState(0);
   const [usedPercentage, setUsedPercentage] = useState(0);

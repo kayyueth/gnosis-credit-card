@@ -8,17 +8,6 @@ export interface MerkleProof {
   leaf: string;
 }
 
-interface Transaction {
-  id: string;
-  amount: string;
-  merchant: string;
-  category: string;
-  description: string;
-  timestamp: number;
-  currency: string;
-  userAddress?: string;
-}
-
 // Custom hash function using ethers
 function hashFunction(data: Buffer): Buffer {
   return Buffer.from(utils.keccak256(data).slice(2), "hex");

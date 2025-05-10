@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useState, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAccount, useReadContract } from "wagmi";
@@ -36,10 +36,6 @@ export function CDPStatusPanel({ currency = "USDC" }: CDPStatusPanelProps) {
   const chainId = useChainId();
   const { isInitialized } = useAave();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const previousDebtRef = useRef<{ usdc: string; eure: string }>({
-    usdc: "0",
-    eure: "0",
-  });
 
   // Exchange rate for conversion between USD and EUR (simplified fixed rate for demo)
   const eurToUsdRate = 1.08;
