@@ -47,13 +47,9 @@ import {
   getTransactionHistory,
   type OffChainTransactionHistory as OffChainTxHistory,
 } from "@/lib/offChainSpendingService";
-import { CHAIN_CONFIGS } from "@/config/chain";
 import toast from "react-hot-toast";
-import { generateMerkleTree } from "@/lib/merkleTree";
 import { MerkleProofDisplay } from "./MerkleProofDisplay";
 
-// Default to Gnosis Chiado testnet
-const DEFAULT_CHAIN_ID = 10200;
 const EXPLORER_URL = "https://gnosis-chiado.blockscout.com/tx/";
 
 interface OffChainTransactionHistoryProps {

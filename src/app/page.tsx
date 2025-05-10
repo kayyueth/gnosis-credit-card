@@ -21,7 +21,6 @@ import {
   type CreditProfile,
 } from "@/data/mock-credit-scores";
 import { CreditDeclarationPanel } from "@/components/credit/CreditDeclarationPanel";
-import { useGnosisCreditCard } from "@/hooks/useGnosisCreditCard";
 import { useSafeStore } from "@/store/useSafeStore";
 import SafeAuthConnect from "@/components/auth/SafeAuthConnect";
 import { Alert, AlertDescription } from "@/components/ui/alert";

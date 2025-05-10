@@ -1,5 +1,4 @@
-import { formatEther, parseEther } from "viem";
-import { useGnosisCreditCard } from "@/hooks/useGnosisCreditCard";
+import { ethers } from "ethers";
 
 interface OffChainTransaction {
   id: string;

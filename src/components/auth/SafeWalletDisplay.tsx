@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useBalance } from "wagmi";
 import { useMounted } from "@/hooks/useMounted";
 import { SafeTransactionHistory } from "@/components/auth/SafeTransactionHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -1,17 +1,15 @@
 import { useEffect, useState, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAccount, useReadContract } from "wagmi";
 import { useChainId } from "wagmi";
 import { formatEther } from "viem";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, InfoIcon } from "lucide-react";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { useAave } from "@/hooks/useAave";
 import { toast } from "react-hot-toast";
 
 interface CDPStatusPanelProps {
-  className?: string;
   currency?: "USDC" | "EURe";
 }
 
@@ -33,20 +31,15 @@ const getUserBorrowedAbi = [
   },
 ] as const;
 
-export function CDPStatusPanel({
-  className,
-  currency = "USDC",
-}: CDPStatusPanelProps) {
+export function CDPStatusPanel({ currency = "USDC" }: CDPStatusPanelProps) {
   const { address } = useAccount();
   const chainId = useChainId();
   const { isInitialized } = useAave();
-  const [lastUpdate, setLastUpdate] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const previousDebtRef = useRef<{ usdc: string; eure: string }>({
     usdc: "0",
     eure: "0",
   });
-  const [showRedeclareReminder, setShowRedeclareReminder] = useState(false);
 
   // Exchange rate for conversion between USD and EUR (simplified fixed rate for demo)
   const eurToUsdRate = 1.08;
@@ -138,49 +131,6 @@ export function CDPStatusPanel({
       : "∞";
   const isLiquidationRisk = Number(healthFactor) < 1.2;
 
-  // Check if debt has increased since last check, show reminder if needed
-  useEffect(() => {
-    if (address && usdcDebt && eureDebt) {
-      const currentUsdcDebt = usdcDebtAmount;
-      const currentEureDebt = eureDebtAmount;
-      const prevDebts = previousDebtRef.current;
-
-      // Check if debt has increased
-      const usdcDebtIncreased =
-        Number(currentUsdcDebt) > Number(prevDebts.usdc);
-      const eureDebtIncreased =
-        Number(currentEureDebt) > Number(prevDebts.eure);
-
-      // If any debt has increased, show the reminder for 60 seconds
-      if (usdcDebtIncreased || eureDebtIncreased) {
-        console.log("Debt increased, showing reminder", {
-          previous: prevDebts,
-          current: { usdc: currentUsdcDebt, eure: currentEureDebt },
-        });
-        setShowRedeclareReminder(true);
-
-        // Auto-hide the reminder after 60 seconds
-        const timerId = setTimeout(() => {
-          setShowRedeclareReminder(false);
-        }, 60000);
-
-        // Update previous debt values
-        previousDebtRef.current = {
-          usdc: currentUsdcDebt,
-          eure: currentEureDebt,
-        };
-
-        return () => clearTimeout(timerId);
-      }
-
-      // Update previous debt values even if there's no increase
-      previousDebtRef.current = {
-        usdc: currentUsdcDebt,
-        eure: currentEureDebt,
-      };
-    }
-  }, [usdcDebtAmount, eureDebtAmount, address, usdcDebt, eureDebt]);
-
   // Handle refresh
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -190,7 +140,6 @@ export function CDPStatusPanel({
         refetchUsdcDebt(),
         refetchEureDebt(),
       ]);
-      setLastUpdate(Date.now());
       toast.success("Position data refreshed");
     } catch (error) {
       console.error("Error refreshing position data:", error);

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   useSafeTransactions,
   type TransactionSource,
+  type Transaction,
 } from "@/hooks/useSafeTransactions";
 import { formatDistanceToNow } from "date-fns";
 import {
@@ -272,6 +273,11 @@ const TransactionSkeleton = () => (
   </div>
 );
 
+// For rewards, extend Transaction if needed
+interface RewardTransaction extends Transaction {
+  // Add any extra fields for rewards if needed
+}
+
 export function CardTransactions({ className }: CardTransactionsProps) {
   const { safeAddress } = useSafeStore();
   const { transactions, isLoading, error, refreshTransactions, walletAddress } =
@@ -287,10 +293,14 @@ export function CardTransactions({ className }: CardTransactionsProps) {
   const lendingState = useLending();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dataFetched, setDataFetched] = useState(false);
-  const [rewardsTransactions, setRewardsTransactions] = useState<any[]>([]);
-  const [lendingTransactions, setLendingTransactions] = useState<any[]>([]);
-  const [localTransactions, setLocalTransactions] = useState<any[]>([]);
+  const [lendingTransactions, setLendingTransactions] = useState<Transaction[]>(
+    []
+  );
+  const [localTransactions, setLocalTransactions] = useState<Transaction[]>([]);
   const [transactionTabActive, setTransactionTabActive] = useState(false);
+  const [rewardsTransactions, setRewardsTransactions] = useState<
+    RewardTransaction[]
+  >([]);
 
   // Check if the current active tab is "transactions"
   useEffect(() => {
@@ -394,27 +404,26 @@ export function CardTransactions({ className }: CardTransactionsProps) {
       const borrowedAmount = lendingState?.state?.borrowedAmount;
       if (borrowedAmount && Number(borrowedAmount) > 0 && safeAddress) {
         // Create a fresh borrow transaction to ensure it appears
-        const borrowTx = {
+        const borrowTx: Transaction = {
           id: `borrow-refresh-${Date.now()}-${borrowedAmount}`,
           from: lendingPoolAddress,
           to: safeAddress,
-          type: "incoming" as const,
+          type: "incoming",
           value: borrowedAmount,
           formattedValue: Number(borrowedAmount).toFixed(2),
           tokenSymbol: "USDC",
+          tokenAddress: lendingPoolAddress,
           timestamp: Date.now() - 60000, // 1 minute ago
-          merchant: "Aave V3",
-          category: "Borrow",
-          description: "Stablecoin Borrow",
           action: "Borrow",
-          source: "ui" as TransactionSource,
+          source: "wallet",
         };
 
         setLendingTransactions((prev) => {
-          // Only add if not already present
           if (
             !prev.some(
-              (tx) => tx.value === borrowedAmount && tx.category === "Borrow"
+              (tx) =>
+                tx.value === borrowedAmount &&
+                inferCategory(tx).category === "Borrow"
             )
           ) {
             console.log("Adding borrow transaction during refresh:", borrowTx);
@@ -453,57 +462,21 @@ export function CardTransactions({ className }: CardTransactionsProps) {
         .slice(0, 5);
 
       // Array for our cashback rewards
-      const generatedRewards: Array<{
-        id: string;
-        from: string;
-        to: string;
-        type: string;
-        value: string;
-        formattedValue: string;
-        tokenSymbol: string;
-        timestamp: number;
-        merchant: string;
-        category: string;
-        description: string;
-      }> = [];
-
-      // Only generate cashbacks if we have spending transactions and a claim has happened
-      if (lastClaim > 0 && spendingTransactions.length > 0) {
-        // Generate a cashback for each spending transaction
-        spendingTransactions.forEach((tx, index) => {
-          // Use the real transaction's merchant and category if available
-          const txInfo = inferCategory(tx);
-          const merchant = txInfo.merchant || "Unknown Merchant";
-          const category = txInfo.category || "Spending";
-
-          // Calculate proportional cashback amount (0.5-3% based on user's tier)
-          // For simplicity, we're using a flat 2% rate here
-          const cashbackRate = 0.02;
-          const spendAmount = Number(tx.formattedValue);
-          const cashbackAmount = (spendAmount * cashbackRate).toFixed(2);
-
-          // Generate a cashback reward that happened shortly after the transaction
-          // (24 hours after the original transaction)
-          const cashbackTimestamp = tx.timestamp + 86400000;
-
-          // Only add if the cashback timestamp is before the current time
-          if (cashbackTimestamp < Date.now()) {
-            generatedRewards.push({
-              id: `cashback-${tx.id}`,
-              from: gnosisCreditCardAddress, // Gnosis Pay contract
-              to: safeAddress,
-              type: "incoming",
-              value: cashbackAmount,
-              formattedValue: cashbackAmount,
-              tokenSymbol: "GNO",
-              timestamp: cashbackTimestamp,
-              merchant: "Gnosis Pay",
-              category: "Rewards",
-              description: `Cashback: ${merchant} (${category})`,
-            });
-          }
-        });
-      }
+      const generatedRewards: RewardTransaction[] = spendingTransactions.map(
+        (tx, index) => ({
+          id: `reward-${tx.id}-${index}`,
+          from: tx.from,
+          to: tx.to,
+          type: tx.type,
+          value: tx.value,
+          formattedValue: tx.formattedValue,
+          tokenSymbol: tx.tokenSymbol,
+          tokenAddress: tx.tokenAddress,
+          timestamp: tx.timestamp + 86400000, // 24 hours after original tx
+          action: "Reward",
+          source: tx.source,
+        })
+      );
 
       // Compare stringified arrays to avoid unnecessary updates
       const currentRewardsString = JSON.stringify(generatedRewards);
@@ -530,14 +503,14 @@ export function CardTransactions({ className }: CardTransactionsProps) {
     // This prevents duplicate entries with different timestamps
     const hasDeposit = lendingTransactions.some(
       (tx) =>
-        tx.category === "Deposit" &&
+        inferCategory(tx).category === "Deposit" &&
         tx.tokenSymbol === "wstETH" &&
         Number(tx.value) === Number(lendingState?.state?.depositedAmount || 0)
     );
 
     const hasBorrow = lendingTransactions.some(
       (tx) =>
-        tx.category === "Borrow" &&
+        inferCategory(tx).category === "Borrow" &&
         tx.tokenSymbol === "USDC" &&
         Number(tx.value) === Number(lendingState?.state?.borrowedAmount || 0)
     );
@@ -560,10 +533,10 @@ export function CardTransactions({ className }: CardTransactionsProps) {
         value: lendingState.state.depositedAmount,
         formattedValue: Number(lendingState.state.depositedAmount).toFixed(2),
         tokenSymbol: "wstETH",
+        tokenAddress: lendingPoolAddress,
         timestamp: Date.now() - 86400000,
-        merchant: "Aave V3",
-        category: "Deposit",
-        description: "Collateral Deposit",
+        action: "Deposit",
+        source: "wallet",
       });
     }
 
@@ -582,10 +555,10 @@ export function CardTransactions({ className }: CardTransactionsProps) {
         value: lendingState.state.borrowedAmount,
         formattedValue: Number(lendingState.state.borrowedAmount).toFixed(2),
         tokenSymbol: "USDC",
+        tokenAddress: lendingPoolAddress,
         timestamp: Date.now() - 86380000,
-        merchant: "Aave V3",
-        category: "Borrow",
-        description: "Stablecoin Borrow",
+        action: "Borrow",
+        source: "wallet",
       });
     }
 
@@ -607,45 +580,32 @@ export function CardTransactions({ className }: CardTransactionsProps) {
 
     return uiTransactions.map((tx) => {
       // Determine the proper type based on action
-      let type =
+      let type: "incoming" | "outgoing" =
         tx.from === safeAddress || tx.from === walletAddress
           ? "outgoing"
           : "incoming";
-      // Ensure Mint shows as a distinct action, not as a deposit
-      let category = tx.action;
-      let action = tx.action;
-
       // Description should reflect what actually happened in the UI
-      let description = tx.description || "Transaction";
-
+      let action = tx.action;
       // For mint actions, make sure they show as mint in both category and action
       if (tx.action === "Mint") {
-        category = "Mint";
         action = "Mint";
-        type = "incoming"; // Mint is generally an incoming action (adding tokens)
+        type = "incoming";
       }
-
-      // For borrow actions, ensure they show correctly
       if (tx.action === "Borrow") {
-        category = "Borrow";
         action = "Borrow";
-        type = "incoming"; // Borrow is an incoming action (receiving borrowed tokens)
+        type = "incoming";
       }
-
       return {
         id: tx.id,
         timestamp: tx.timestamp,
         from: tx.from,
         to: tx.to,
-        tokenAddress: "", // Not needed for UI display
+        tokenAddress: "",
         tokenSymbol: tx.tokenSymbol,
         value: tx.value,
         formattedValue: tx.formattedValue,
         type,
         action,
-        merchant: tx.title,
-        category,
-        description,
         source: "ui" as TransactionSource,
       };
     });
@@ -699,7 +659,6 @@ export function CardTransactions({ className }: CardTransactionsProps) {
     ...lendingTransactions,
     ...processedUITransactions,
   ]
-    // Remove duplicates based on similar transaction data
     .filter((tx, index, self) => {
       // Try to deduplicate by looking for similar transactions (same amount, type, and token)
       return (
@@ -709,26 +668,25 @@ export function CardTransactions({ className }: CardTransactionsProps) {
             // Match by exact ID first
             t.id === tx.id ||
             // Or by similar transaction properties
-            (t.category === tx.category &&
+            (inferCategory(t).category === inferCategory(tx).category &&
               t.tokenSymbol === tx.tokenSymbol &&
-              Math.abs(Number(t.value) - Number(tx.value)) < 0.01 && // Allow for tiny rounding differences
+              Math.abs(Number(t.value) - Number(tx.value)) < 0.01 &&
               Math.abs(t.timestamp - tx.timestamp) < 600000) // Within 10 minutes of each other
         )
       );
     })
-    // Filter out spending actions - only show DeFi and credit-related activities
-    .filter(
-      (tx) =>
-        // Include specifically these categories/actions
-        tx.category === "Deposit" ||
-        tx.category === "Borrow" ||
-        tx.category === "Mint" ||
-        tx.category === "Rewards" ||
-        // Include anything with these specific actions
-        tx.action === "Deposit" ||
-        tx.action === "Borrow" ||
-        tx.action === "Mint"
-    )
+    .filter((tx) => {
+      const { category, action } = { ...inferCategory(tx), action: tx.action };
+      return (
+        category === "Deposit" ||
+        category === "Borrow" ||
+        category === "Mint" ||
+        category === "Rewards" ||
+        action === "Deposit" ||
+        action === "Borrow" ||
+        action === "Mint"
+      );
+    })
     .sort((a, b) => b.timestamp - a.timestamp);
 
   // Always show actual data or loading
@@ -789,28 +747,28 @@ export function CardTransactions({ className }: CardTransactionsProps) {
         ) : (
           <div className="space-y-4">
             {allTransactions.slice(0, 10).map((tx) => {
+              const { merchant, category, description } = inferCategory(tx);
+
               // Determine the real transaction type based on both action and category
               const isMint =
                 tx.action === "Mint" ||
-                (tx.category === "Mint" && tx.action !== "Deposit") ||
-                (tx.description &&
-                  tx.description.toLowerCase().includes("mint")) ||
-                (tx.merchant && tx.merchant.toLowerCase().includes("mint"));
+                (category === "Mint" && tx.action !== "Deposit") ||
+                (description && description.toLowerCase().includes("mint")) ||
+                (merchant && merchant.toLowerCase().includes("mint"));
 
               const isDeposit =
-                !isMint &&
-                (tx.action === "Deposit" || tx.category === "Deposit");
+                !isMint && (tx.action === "Deposit" || category === "Deposit");
 
               const isBorrow =
                 !isMint &&
                 !isDeposit &&
-                (tx.action === "Borrow" || tx.category === "Borrow");
+                (tx.action === "Borrow" || category === "Borrow");
 
               // Adjust the merchant name for wstETH mints
               const displayMerchant =
                 isMint && tx.tokenSymbol === "wstETH"
                   ? "wstETH Mint"
-                  : tx.merchant;
+                  : merchant;
 
               return (
                 <div
@@ -828,7 +786,7 @@ export function CardTransactions({ className }: CardTransactionsProps) {
                         ? "bg-emerald-100 dark:bg-emerald-900/20"
                         : tx.action?.includes("Approve")
                         ? "bg-blue-100 dark:bg-blue-900/20"
-                        : tx.category === "Rewards"
+                        : category === "Rewards"
                         ? "bg-green-100 dark:bg-green-900/20"
                         : tx.type === "incoming"
                         ? "bg-green-100 dark:bg-green-900/20"
@@ -843,7 +801,7 @@ export function CardTransactions({ className }: CardTransactionsProps) {
                       <CreditCard className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                     ) : tx.action?.includes("Approve") ? (
                       <Check className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                    ) : tx.category === "Rewards" ? (
+                    ) : category === "Rewards" ? (
                       <Gift className="h-5 w-5 text-green-600 dark:text-green-400" />
                     ) : tx.type === "incoming" ? (
                       <ArrowDownLeft className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -881,24 +839,16 @@ export function CardTransactions({ className }: CardTransactionsProps) {
                           )}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center">
-                          {getCategoryIcon(
-                            isMint
-                              ? "Mint"
-                              : isDeposit
-                              ? "Deposit"
-                              : isBorrow
-                              ? "Borrow"
-                              : tx.category
-                          )}
+                          {getCategoryIcon(category)}
                           <span className="ml-1">
-                            {tx.description ||
-                              (isMint
+                            {description ||
+                              (category === "Mint"
                                 ? "Token Minted"
-                                : isDeposit
+                                : category === "Deposit"
                                 ? "Collateral Deposit"
-                                : isBorrow
+                                : category === "Borrow"
                                 ? "Stablecoin Borrow"
-                                : tx.category)}
+                                : category)}
                           </span>
                         </div>
                       </div>

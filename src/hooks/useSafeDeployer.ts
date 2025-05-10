@@ -1,6 +1,5 @@
 import { useState } from "react";
 import * as ethers from "ethers";
-import { providers } from "ethers";
 
 /**
  * Hook to handle Safe wallet deployment

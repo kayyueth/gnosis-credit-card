@@ -134,7 +134,7 @@ export function CardBalanceStats({
           : stats.totalDeposited - stats.totalSpent
       ),
     };
-  }, [stats, currency, creditSnapshot, creditSpent, getConvertedValue]);
+  }, [stats, creditSnapshot, creditSpent, getConvertedValue]);
 
   // Handle refresh
   const handleRefresh = async () => {

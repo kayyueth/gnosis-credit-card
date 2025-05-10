@@ -11,39 +11,14 @@ import {
   shouldSendMonthlyReminder,
   generateMonthlyReminderMessage,
   recordTransactionHistory,
+  type OffChainTransactionHistory,
 } from "@/lib/offChainSpendingService";
 import { getCreditProfile } from "@/data/mock-credit-scores";
-import { parseEther } from "viem";
 import { CHAIN_CONFIGS } from "@/config/chain";
 import { generateMerkleTree } from "@/lib/merkleTree";
 
 // Default to Gnosis Chiado testnet
 const DEFAULT_CHAIN_ID = 10200;
-const { gnosisCreditCardAddress } = CHAIN_CONFIGS[DEFAULT_CHAIN_ID];
-
-// Admin ABI for recording off-chain spending
-const ADMIN_RECORD_ABI = [
-  {
-    inputs: [
-      { internalType: "address", name: "user", type: "address" },
-      { internalType: "uint256", name: "amount", type: "uint256" },
-    ],
-    name: "recordOffChainSpending",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-] as const;
-
-interface Transaction {
-  amount: string;
-  merchant: string;
-  category: string;
-  description: string;
-  currency: "USDC" | "EURe";
-  timestamp: number;
-  isCleared: boolean;
-}
 
 interface OffChainSpendingHookReturn {
   recordOffChainSpending: (
@@ -54,8 +29,8 @@ interface OffChainSpendingHookReturn {
     currency: "USDC" | "EURe"
   ) => Promise<boolean>;
   clearMonthlyBalance: () => Promise<boolean>;
-  allTransactions: Transaction[];
-  outstandingTransactions: Transaction[];
+  allTransactions: OffChainTransactionHistory[];
+  outstandingTransactions: OffChainTransactionHistory[];
   totalOutstanding: number;
   isLoading: boolean;
   checkForReminders: () => void;
@@ -66,15 +41,14 @@ interface OffChainSpendingHookReturn {
 
 export function useOffChainSpending(): OffChainSpendingHookReturn {
   const { address } = useAccount();
-  const {
-    handleMonthlyClearance,
-    isLoading: isCreditCardLoading,
-    recordOffChainSpending: contractRecordSpending,
-  } = useGnosisCreditCard();
+  const { handleMonthlyClearance, isLoading: isCreditCardLoading } =
+    useGnosisCreditCard();
   const [isLoading, setIsLoading] = useState(false);
-  const [allTransactions, setAllTransactions] = useState<Transaction[]>([]);
+  const [allTransactions, setAllTransactions] = useState<
+    OffChainTransactionHistory[]
+  >([]);
   const [outstandingTransactions, setOutstandingTransactions] = useState<
-    Transaction[]
+    OffChainTransactionHistory[]
   >([]);
   const [totalOutstanding, setTotalOutstanding] = useState(0);
   const [hasReminder, setHasReminder] = useState(false);
@@ -85,12 +59,22 @@ export function useOffChainSpending(): OffChainSpendingHookReturn {
     if (!address) return;
 
     try {
-      // Get all transactions
-      const all = getUserOffChainTransactions(address);
+      // Get all transactions and convert to history format
+      const all = getUserOffChainTransactions(address).map((tx) => ({
+        ...tx,
+        type: "spend" as const,
+        id: tx.id,
+        userAddress: tx.userAddress,
+      }));
       setAllTransactions(all);
 
-      // Get outstanding transactions
-      const outstanding = getOutstandingTransactions(address);
+      // Get outstanding transactions and convert to history format
+      const outstanding = getOutstandingTransactions(address).map((tx) => ({
+        ...tx,
+        type: "spend" as const,
+        id: tx.id,
+        userAddress: tx.userAddress,
+      }));
       setOutstandingTransactions(outstanding);
 
       // Calculate total outstanding

@@ -129,13 +129,14 @@ export function useSafeTransactions({
   }, [chainId]);
 
   // Helper to process batches of events
-  const processEventsBatch = async <T>(
-    events: (TransferEvent | ApprovalEvent | LendingEvent)[],
-    processFn: (
-      event: TransferEvent | ApprovalEvent | LendingEvent,
-      ...args: unknown[]
-    ) => Promise<T>,
-    ...args: unknown[]
+  const processEventsBatch = async <
+    T,
+    E extends TransferEvent | ApprovalEvent | LendingEvent,
+    A extends unknown[]
+  >(
+    events: E[],
+    processFn: (event: E, ...args: A) => Promise<T>,
+    ...args: A
   ) => {
     const results: T[] = [];
     for (const event of events) {
@@ -155,7 +156,7 @@ export function useSafeTransactions({
     tokenAddress: string,
     symbol: string,
     decimals: number
-  ) => {
+  ): Promise<Transaction> => {
     const block = await provider!.getBlock(event.blockNumber);
     const txHash = event.transactionHash;
 
@@ -175,6 +176,43 @@ export function useSafeTransactions({
       formattedValue: ethers.utils.formatUnits(event.args.value, decimals),
       type: "outgoing",
       action: "Approval",
+      source,
+    };
+  };
+
+  // Process lending events (deposits and borrows)
+  const processLendingEvent = async (
+    event: LendingEvent,
+    action: "Deposit" | "Borrow"
+  ): Promise<Transaction> => {
+    const block = await provider!.getBlock(event.blockNumber);
+    const txHash = event.transactionHash;
+    const { user, asset, amount } = event.args;
+
+    // Get token details
+    const tokenContract = new ethers.Contract(asset, erc20Interface, provider!);
+    const [symbol, decimals] = await Promise.all([
+      tokenContract.symbol(),
+      tokenContract.decimals(),
+    ]);
+
+    const source: TransactionSource =
+      user.toLowerCase() === safeAddress.toLowerCase() ? "safe" : "wallet";
+
+    const type: "incoming" | "outgoing" =
+      action === "Deposit" ? "outgoing" : "incoming";
+
+    return {
+      id: txHash,
+      timestamp: block.timestamp * 1000,
+      from: action === "Deposit" ? user : LENDING_POOL_ADDRESS,
+      to: action === "Deposit" ? LENDING_POOL_ADDRESS : user,
+      tokenAddress: asset,
+      tokenSymbol: symbol,
+      value: amount.toString(),
+      formattedValue: ethers.utils.formatUnits(amount, decimals),
+      type,
+      action,
       source,
     };
   };
@@ -236,57 +274,42 @@ export function useSafeTransactions({
         const fromBlock = Math.max(0, currentBlock - 10000); // Past ~3 days
 
         // === ERC20 Transfer Events ===
-        const filters = [
-          usdcContract.queryFilter(
-            usdcContract.filters.Transfer(null, targetAddress),
-            fromBlock
-          ),
-          usdcContract.queryFilter(
-            usdcContract.filters.Transfer(targetAddress, null),
-            fromBlock
-          ),
-          eureContract.queryFilter(
-            eureContract.filters.Transfer(null, targetAddress),
-            fromBlock
-          ),
-          eureContract.queryFilter(
-            eureContract.filters.Transfer(targetAddress, null),
-            fromBlock
-          ),
-          wstETHContract.queryFilter(
-            wstETHContract.filters.Transfer(null, targetAddress),
-            fromBlock
-          ),
-          wstETHContract.queryFilter(
-            wstETHContract.filters.Transfer(targetAddress, null),
-            fromBlock
-          ),
-          usdcContract.queryFilter(
-            usdcContract.filters.Approval(targetAddress, null),
-            fromBlock
-          ),
-          eureContract.queryFilter(
-            eureContract.filters.Approval(targetAddress, null),
-            fromBlock
-          ),
-          wstETHContract.queryFilter(
-            wstETHContract.filters.Approval(targetAddress, null),
-            fromBlock
-          ),
-        ];
+        const safeIncomingUsdcFilter = usdcContract.filters.Transfer(
+          null,
+          targetAddress
+        );
+        const safeOutgoingUsdcFilter = usdcContract.filters.Transfer(
+          targetAddress,
+          null
+        );
+        const safeIncomingEureFilter = eureContract.filters.Transfer(
+          null,
+          targetAddress
+        );
+        const safeOutgoingEureFilter = eureContract.filters.Transfer(
+          targetAddress,
+          null
+        );
+        const safeIncomingWstETHFilter = wstETHContract.filters.Transfer(
+          null,
+          targetAddress
+        );
+        const safeOutgoingWstETHFilter = wstETHContract.filters.Transfer(
+          targetAddress,
+          null
+        );
 
         // === Lending Events ===
-        const lendingFilters = [
-          lendingPoolContract.queryFilter(
-            lendingPoolContract.filters.Deposit(targetAddress, null),
-            fromBlock
-          ),
-          lendingPoolContract.queryFilter(
-            lendingPoolContract.filters.Borrow(targetAddress, null),
-            fromBlock
-          ),
-        ];
+        const safeDepositFilter = lendingPoolContract.filters.Deposit(
+          targetAddress,
+          null
+        );
+        const safeBorrowFilter = lendingPoolContract.filters.Borrow(
+          targetAddress,
+          null
+        );
 
+        // === Fetch events ===
         const [
           incomingUsdcEvents,
           outgoingUsdcEvents,
@@ -299,7 +322,52 @@ export function useSafeTransactions({
           wstETHApprovalEvents,
           depositEvents,
           borrowEvents,
-        ] = await Promise.all([...filters, ...lendingFilters]);
+        ] = await Promise.all([
+          usdcContract.queryFilter(
+            safeIncomingUsdcFilter,
+            fromBlock
+          ) as unknown as Promise<TransferEvent[]>,
+          usdcContract.queryFilter(
+            safeOutgoingUsdcFilter,
+            fromBlock
+          ) as unknown as Promise<TransferEvent[]>,
+          eureContract.queryFilter(
+            safeIncomingEureFilter,
+            fromBlock
+          ) as unknown as Promise<TransferEvent[]>,
+          eureContract.queryFilter(
+            safeOutgoingEureFilter,
+            fromBlock
+          ) as unknown as Promise<TransferEvent[]>,
+          wstETHContract.queryFilter(
+            safeIncomingWstETHFilter,
+            fromBlock
+          ) as unknown as Promise<TransferEvent[]>,
+          wstETHContract.queryFilter(
+            safeOutgoingWstETHFilter,
+            fromBlock
+          ) as unknown as Promise<TransferEvent[]>,
+          usdcContract.queryFilter(
+            usdcContract.filters.Approval(targetAddress, null),
+            fromBlock
+          ) as unknown as Promise<ApprovalEvent[]>,
+          eureContract.queryFilter(
+            eureContract.filters.Approval(targetAddress, null),
+            fromBlock
+          ) as unknown as Promise<ApprovalEvent[]>,
+          wstETHContract.queryFilter(
+            wstETHContract.filters.Approval(targetAddress, null),
+            fromBlock
+          ) as unknown as Promise<ApprovalEvent[]>,
+          lendingPoolContract.queryFilter(
+            safeDepositFilter,
+            fromBlock
+          ) as unknown as Promise<LendingEvent[]>,
+          lendingPoolContract.queryFilter(
+            safeBorrowFilter,
+            fromBlock
+          ) as unknown as Promise<LendingEvent[]>,
+        ]);
 
         console.log(`Found token events for ${addressType}:`, {
           incomingUsdc: incomingUsdcEvents.length,
@@ -317,12 +385,12 @@ export function useSafeTransactions({
 
         // === Helpers ===
         const processTransferEvent = async (
-          event: any,
+          event: TransferEvent,
           tokenAddress: string,
           symbol: string,
           decimals: number,
           type: "incoming" | "outgoing"
-        ) => {
+        ): Promise<Transaction> => {
           const block = await provider.getBlock(event.blockNumber);
           const txHash = event.transactionHash;
           const tx = await provider.getTransaction(txHash);
@@ -366,65 +434,20 @@ export function useSafeTransactions({
           };
         };
 
-        const processApprovalEvent = async (
-          event: any,
-          tokenAddress: string,
-          symbol: string,
-          decimals: number
-        ) => {
-          const block = await provider.getBlock(event.blockNumber);
-          return {
-            id: event.transactionHash + "-approval",
-            timestamp: block.timestamp * 1000,
-            from: event.args.owner,
-            to: event.args.spender,
-            tokenAddress,
-            tokenSymbol: symbol,
-            value: event.args.value.toString(),
-            formattedValue: ethers.utils.formatUnits(
-              event.args.value,
-              decimals
-            ),
-            type: "outgoing",
-            action: "Approval",
-            source: addressType,
-          };
-        };
-
-        const processLendingEvent = async (
-          event: any,
-          type: "Deposit" | "Borrow"
-        ) => {
-          const block = await provider.getBlock(event.blockNumber);
-          const tokenAddress = event.args.asset;
-          const tokenContract = new ethers.Contract(
-            tokenAddress,
-            erc20Interface,
-            provider
-          );
-          const symbol = await tokenContract.symbol();
-          const decimals = await tokenContract.decimals();
-
-          return {
-            id: event.transactionHash + `-${type}`,
-            timestamp: block.timestamp * 1000,
-            from: type === "Deposit" ? targetAddress : lendingPoolAddress,
-            to: type === "Deposit" ? lendingPoolAddress : targetAddress,
-            tokenAddress,
-            tokenSymbol: symbol,
-            value: event.args.amount.toString(),
-            formattedValue: ethers.utils.formatUnits(
-              event.args.amount,
-              decimals
-            ),
-            type: type === "Deposit" ? "outgoing" : "incoming",
-            action: type,
-            source: addressType,
-          };
-        };
-
-        // === Process all events in batch ===
-        const allTxs = await Promise.all([
+        // Process all events
+        const [
+          incomingUsdcTxs,
+          outgoingUsdcTxs,
+          incomingEureTxs,
+          outgoingEureTxs,
+          incomingWstETHTxs,
+          outgoingWstETHTxs,
+          usdcApprovalTxs,
+          eureApprovalTxs,
+          wstETHApprovalTxs,
+          depositTxs,
+          borrowTxs,
+        ] = await Promise.all([
           processEventsBatch(
             incomingUsdcEvents,
             processTransferEvent,
@@ -498,9 +521,24 @@ export function useSafeTransactions({
           processEventsBatch(borrowEvents, processLendingEvent, "Borrow"),
         ]);
 
-        return allTxs.flat();
-      } catch (err) {
-        console.error(`Failed to fetch token events for ${addressType}:`, err);
+        // Combine all transactions
+        const allTransactions = [
+          ...incomingUsdcTxs,
+          ...outgoingUsdcTxs,
+          ...incomingEureTxs,
+          ...outgoingEureTxs,
+          ...incomingWstETHTxs,
+          ...outgoingWstETHTxs,
+          ...usdcApprovalTxs,
+          ...eureApprovalTxs,
+          ...wstETHApprovalTxs,
+          ...depositTxs,
+          ...borrowTxs,
+        ];
+
+        return allTransactions;
+      } catch (error) {
+        console.error("Error fetching token events:", error);
         return [];
       }
     },

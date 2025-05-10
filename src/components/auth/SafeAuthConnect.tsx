@@ -314,7 +314,7 @@ export default function SafeAuthConnect() {
         );
       };
     }
-  }, [eoaAddress, useFallbackAuth]);
+  }, [eoaAddress, useFallbackAuth, connectWithFallback]);
 
   // Function to track connection failure attempts and suggest fallback auth
   useEffect(() => {
@@ -426,8 +426,9 @@ export default function SafeAuthConnect() {
 
       // Update EOA address after we've checked for existing mappings
       setEoaAddress(address);
-    } catch (err: any) {
+    } catch (err: Error | unknown) {
       console.error("Web3Auth sign-in failed:", err);
+      const error = err as Error;
 
       // Increment the connection failure counter
       const connectionFailures =
@@ -437,9 +438,9 @@ export default function SafeAuthConnect() {
 
       // Check for user closed modal error
       if (
-        err?.message?.includes("modal closed") ||
-        err?.message?.includes("User closed") ||
-        err?.message === "Error: User closed the modal"
+        error?.message?.includes("modal closed") ||
+        error?.message?.includes("User closed") ||
+        error?.message === "Error: User closed the modal"
       ) {
         console.log("User closed the Web3Auth modal");
 
@@ -447,7 +448,7 @@ export default function SafeAuthConnect() {
         if (newFailureCount >= 2) {
           setShowFallbackSuggestion(true);
         }
-      } else if (err?.message?.includes("RPC Error")) {
+      } else if (error?.message?.includes("RPC Error")) {
         console.log("RPC connection error, consider using fallback auth");
         setShowFallbackSuggestion(true);
       }

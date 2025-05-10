@@ -81,6 +81,7 @@
     "https-browserify": "^1.0.0",
     "os-browserify": "^0.3.0",
     "path-browserify": "^1.0.1",
+    "pino-pretty": "^13.0.0",
     "semver": "^7.7.1",
     "solidity-coverage": "^0.7.22",
     "stream-browserify": "^3.0.0",

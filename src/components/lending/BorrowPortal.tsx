@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useAccount, useWalletClient, useWriteContract } from "wagmi";
 import { useAave } from "@/hooks/useAave";
-import { useSafeStore } from "@/store/useSafeStore";
 import { CHAIN_CONFIGS } from "@/config/chain";
 import { toast } from "react-hot-toast";
 import { TransactionStatus } from "@/components/TransactionStatus";

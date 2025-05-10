@@ -1,7 +1,6 @@
 import { utils } from "ethers";
 import { MerkleTree } from "merkletreejs";
 import { OffChainTransactionHistory } from "./offChainSpendingService";
-import { keccak256, encodePacked } from "viem";
 
 export interface MerkleProof {
   root: string;
