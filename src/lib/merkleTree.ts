@@ -1,11 +1,15 @@
 import { utils } from "ethers";
 import { MerkleTree } from "merkletreejs";
-import keccak256Hash from "keccak256";
 
 export interface MerkleProof {
   root: string;
   proof: string[];
   leaf: string;
+}
+
+// Custom hash function using ethers
+function hashFunction(data: Buffer): Buffer {
+  return Buffer.from(utils.keccak256(data).slice(2), "hex");
 }
 
 export function generateMerkleTree(transactions: any[]): MerkleProof {
@@ -28,12 +32,12 @@ export function generateMerkleTree(transactions: any[]): MerkleProof {
       userAddress: tx.userAddress.toLowerCase(), // Normalize address
     });
 
-    // Hash the transaction string using keccak256Hash directly
-    return keccak256Hash(txString);
+    // Hash the transaction string using ethers
+    return hashFunction(Buffer.from(txString));
   });
 
   // Create Merkle tree
-  const tree = new MerkleTree(leaves, keccak256Hash, { sortPairs: true });
+  const tree = new MerkleTree(leaves, hashFunction, { sortPairs: true });
 
   // Get root
   const root = tree.getRoot().toString("hex");
@@ -56,6 +60,8 @@ export function generateMerkleTree(transactions: any[]): MerkleProof {
 }
 
 export function verifyMerkleProof(proof: MerkleProof): boolean {
-  const tree = new MerkleTree([proof.leaf], keccak256Hash, { sortPairs: true });
-  return tree.verify(proof.proof, proof.leaf, proof.root);
+  const tree = new MerkleTree([Buffer.from(proof.leaf, "hex")], hashFunction, {
+    sortPairs: true,
+  });
+  return tree.verify(proof.proof, Buffer.from(proof.leaf, "hex"), proof.root);
 }

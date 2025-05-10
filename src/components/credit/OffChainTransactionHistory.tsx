@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Gift,
   RefreshCw,
+  Hash,
 } from "lucide-react";
 import {
   Card,
@@ -37,11 +38,18 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   getTransactionHistory,
   type OffChainTransactionHistory as OffChainTxHistory,
 } from "@/lib/offChainSpendingService";
 import { CHAIN_CONFIGS } from "@/config/chain";
 import toast from "react-hot-toast";
+import { generateMerkleTree } from "@/lib/merkleTree";
 
 // Default to Gnosis Chiado testnet
 const DEFAULT_CHAIN_ID = 10200;
@@ -245,6 +253,39 @@ export function OffChainTransactionHistory({
                           </div>
                         )}
                         {formatTxHash(tx.txHash)}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                <Hash className="h-3 w-3 mr-1" />
+                                View Merkle Hash
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[550px] p-6">
+                              <div className="space-y-2">
+                                <p className="font-bold">Merkle Tree Details</p>
+                                <div className="text-xs space-y-1">
+                                  <p>
+                                    <span className="font-medium">Root:</span>{" "}
+                                    {generateMerkleTree([tx]).root}
+                                  </p>
+                                  <p>
+                                    <span className="font-medium">Leaf:</span>{" "}
+                                    {generateMerkleTree([tx]).leaf}
+                                  </p>
+                                  <p>
+                                    <span className="font-medium">Proof:</span>{" "}
+                                    {generateMerkleTree([tx]).proof.join(", ")}
+                                  </p>
+                                </div>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     ) : (
                       <div>
@@ -257,6 +298,41 @@ export function OffChainTransactionHistory({
                           </div>
                         )}
                         {formatTxHash(tx.txHash)}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
+                              >
+                                <Hash className="h-3 w-3 mr-1" />
+                                View Merkle Hash
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-[300px]">
+                              <div className="space-y-2">
+                                <p className="font-medium">
+                                  Merkle Tree Details
+                                </p>
+                                <div className="text-xs space-y-1">
+                                  <p>
+                                    <span className="font-medium">Root:</span>{" "}
+                                    {generateMerkleTree([tx]).root}
+                                  </p>
+                                  <p>
+                                    <span className="font-medium">Leaf:</span>{" "}
+                                    {generateMerkleTree([tx]).leaf}
+                                  </p>
+                                  <p>
+                                    <span className="font-medium">Proof:</span>{" "}
+                                    {generateMerkleTree([tx]).proof.join(", ")}
+                                  </p>
+                                </div>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                     )}
                   </TableCell>
