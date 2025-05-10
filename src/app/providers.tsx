@@ -70,13 +70,13 @@ if (!projectId || projectId === "YOUR_PROJECT_ID") {
 
 // Create a fallback configuration for development
 const { wallets } = getDefaultWallets({
-  appName: "Gnosis Credit Card",
+  appName: "Credo Web3 App",
   projectId: projectId || "YOUR_PROJECT_ID",
 });
 
 const connectors = connectorsForWallets(wallets, {
   projectId: projectId || "YOUR_PROJECT_ID",
-  appName: "Gnosis Credit Card",
+  appName: "Credo Web3 App",
 });
 
 // Configure chains and transports

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { WalletConnect } from "@/components/WalletConnect";
-import { SafeWalletDisplay } from "@/components/SafeWalletDisplay";
-import { WalletDebug } from "@/components/WalletDebug";
+import { WalletConnect } from "./WalletConnect";
+import { SafeWalletDisplay } from "./SafeWalletDisplay";
+import { WalletDebug } from "./WalletDebug";
 
 export function WalletContainer() {
   const [showDebug, setShowDebug] = useState(false);
