@@ -53,30 +53,6 @@ const DEFAULT_CHAIN_ID = 10200;
 const { gnosisCreditCardAddress, gnoPointsAddress, lendingPoolAddress } =
   CHAIN_CONFIGS[DEFAULT_CHAIN_ID];
 
-// Remove unused MERCHANT_CATEGORIES constant since it's not being used
-// The merchant categories with mapped names
-const getMerchantCategory = (
-  address: string
-): { name: string; category: string } | undefined => {
-  const lowerAddress = address.toLowerCase();
-  if (lowerAddress === "0x2dc3fb1f38b0e88a98929f256b0967175eae9e56") {
-    return { name: "Gnosis Safe", category: "Transfer" };
-  }
-  if (lowerAddress === "0xcd5d4a865e0c7442c5a2e3720a36f622883fcb91") {
-    return { name: "Gnosis Transport", category: "Transportation" };
-  }
-  if (lowerAddress === "0xe0c7442c5a2e3720a36f622883fcb91cd5d4a865") {
-    return { name: "Gnosis Utilities", category: "Utilities" };
-  }
-  if (lowerAddress === lendingPoolAddress.toLowerCase()) {
-    return { name: "Aave V3", category: "DeFi" };
-  }
-  if (lowerAddress === gnosisCreditCardAddress.toLowerCase()) {
-    return { name: "Gnosis Pay", category: "Rewards" };
-  }
-  return undefined;
-};
-
 // Function to get category icon
 const getCategoryIcon = (category: string, action?: string) => {
   // If we have an action, use that for more specific icon selection
@@ -289,7 +265,7 @@ export function CardTransactions({ className }: CardTransactionsProps) {
   // Get UI transactions from our store
   const { transactions: uiTransactions } = useTransactionStore();
 
-  const { userCredit, lastClaim } = useGnosisCreditCard();
+  const { userCredit } = useGnosisCreditCard();
   const lendingState = useLending();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [dataFetched, setDataFetched] = useState(false);
@@ -444,7 +420,7 @@ export function CardTransactions({ className }: CardTransactionsProps) {
 
   // Generate rewards transactions
   useEffect(() => {
-    if (userCredit && Number(userCredit.creditSpent) > 0 && safeAddress) {
+    if (userCredit && safeAddress) {
       // Get actual spending transactions to generate cashbacks from
       const spendingTransactions = [...transactions, ...localTransactions]
         .filter(
@@ -483,13 +459,7 @@ export function CardTransactions({ className }: CardTransactionsProps) {
 
       setRewardsTransactions(generatedRewards);
     }
-  }, [
-    userCredit,
-    safeAddress,
-    transactions,
-    localTransactions,
-    gnoPointsAddress,
-  ]);
+  }, [userCredit, safeAddress, transactions, localTransactions]);
 
   // Generate lending transactions
   useEffect(() => {
@@ -564,7 +534,6 @@ export function CardTransactions({ className }: CardTransactionsProps) {
     lendingState?.state?.depositedAmount,
     lendingState?.state?.borrowedAmount,
     safeAddress,
-    lendingPoolAddress,
     lendingTransactions,
   ]);
 

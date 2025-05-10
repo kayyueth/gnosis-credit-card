@@ -12,8 +12,6 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCreditUsage } from "@/hooks/useCreditUsage";
-import { useSafeStore } from "@/store/useSafeStore";
 import { useGnosisCreditCard } from "@/hooks/useGnosisCreditCard";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";

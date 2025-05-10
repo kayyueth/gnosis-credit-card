@@ -5,12 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, AlertCircle } from "lucide-react";
 import { useGnosisCreditCard } from "@/hooks/useGnosisCreditCard";
-import {
-  useAccount,
-  useWriteContract,
-  useReadContract,
-  usePublicClient,
-} from "wagmi";
+import { useAccount, useWriteContract, useReadContract } from "wagmi";
 import toast from "react-hot-toast";
 import { CHAIN_CONFIGS } from "@/config/chain";
 
@@ -23,7 +18,6 @@ export function CreditDeclarationPanel() {
   const { userCredit, availableCredit, refetch, shouldRedeclare, usdcDebt } =
     useGnosisCreditCard();
   const { address } = useAccount();
-  const publicClient = usePublicClient();
   const [isDeclaringCredit, setIsDeclaringCredit] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [transactionPending, setTransactionPending] = useState(false);
