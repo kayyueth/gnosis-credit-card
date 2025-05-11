@@ -175,14 +175,6 @@ docker build -t gnosis-credit-card .
 docker run -p 3000:3000 gnosis-credit-card
 ```
 
-## 🔒 Security Features
-
-- Multi-signature wallet protection
-- Social recovery mechanisms
-- Privacy-preserving transaction options
-- Secure credit limit management
-- Automated risk assessment
-
 ## 📊 Credit Formula
 
 A trust layer that scores users across 3 weighted dimensions (each 0–100):
