@@ -1,3 +1,5 @@
+[Demo Vid](https://www.youtube.com/watch?v=rkuTFMj5Now) | [Product Deck] (https://drive.google.com/file/d/1xLzBbgusPaoTXvKvjmKPXtsJSA6BNhN1/view?usp=sharing)
+
 # Gnosis Credit Card
 
 ![banner](public/GCC_banner.png)
