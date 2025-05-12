@@ -1,4 +1,4 @@
-[Demo Vid](https://www.youtube.com/watch?v=rkuTFMj5Now) | [Product Deck](https://drive.google.com/file/d/1xLzBbgusPaoTXvKvjmKPXtsJSA6BNhN1/view?usp=sharing)
+[Demo Vid](https://www.youtube.com/watch?v=rkuTFMj5Now) | [Product Deck](https://drive.google.com/file/d/1xLzBbgusPaoTXvKvjmKPXtsJSA6BNhN1/view?usp=sharing) | [Pitch Vid](https://youtu.be/Pb4yxQUCmzQ?si=rwpDi2RiEeCege3M)
 
 # Gnosis Credit Card
 
