@@ -95,7 +95,7 @@ With SafeAuth social login, Aave-backed borrowing, and off-chain settlement, use
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/your-username/gnosis-credit-card.git
+git clone https://github.com/kayyueth/gnosis-credit-card.git
 cd gnosis-credit-card
 ```
 
